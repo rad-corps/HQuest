@@ -5,9 +5,68 @@ actors={}
 actor_index=1
 player = {}
 enemy={ml=7,x=0,y=0}
+room={}
+rooms={}
 timer=0
 map_sz=32
 move_or_action_menu = {}
+mission = {
+	starting_point = {3,3},
+	door_locations = {
+		{6,3},
+		{8,5}
+	}
+}
+
+function init_mission()
+	for dl in all (mission.door_locations) do
+		printh(dl[1])
+		printh(dl[2])
+		mset(dl[1], dl[2],48)
+	end
+
+	actors[1].x = mission.starting_point[1]
+	actors[1].y = mission.starting_point[2]
+end
+
+function reveal_rooms(x,y)
+	
+	printh("reveal rooms: " .. x .. ", " .. y)
+
+	for rm in all(rooms) do
+		--check for collision with x,y and rm
+		printh("checking room: " .. rm.x .. " " .. rm.y .." " .. rm.w .. " " .. rm.h)
+		if rm.x <= x  and rm.x + rm.w >= x and rm.y <= y and rm.h + rm.y >= y then
+			printh("revealing room: " .. rm.x .. " " .. rm.y)
+			rm.visible = true
+		end
+	end
+end
+
+function room:new(o)
+	o = o or {}   -- create object if user does not provide one
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+
+function room:init(x, y, w, h, vis)
+	self.x = x
+	self.y = y
+	self.w = w
+	self.h = h	
+	if vis == nil then 
+		self.visible = false
+	else
+		self.visible = vis
+	end
+end
+
+function room:draw()
+	if (self.visible) then
+		map(self.x, self.y, self.x*8, self.y*8, self.w, self.h)
+	end
+end
 
 --player methods
 function player:new (o)
@@ -89,7 +148,15 @@ function player:move()
 	 --decrement movesleft if player moved
 	if self.x ~= prevx or self.y ~= prevy then
 		self.ml -= 1
+
+		--if we are on a door space
+		if mget(self.x, self.y) == 48 then
+			reveal_rooms(self.x, self.y)
+		end
+
 	end	
+
+
 	
 	--next actor if we run out of moves
 	if self.ml <= 0 then 
@@ -278,16 +345,22 @@ function _init()
 	move_or_action_menu[3] = "search for traps"
 	move_or_action_menu[4] = "search for treasure"
 	move_or_action_menu[5] = "finish turn"
+
+	rooms[1] = room:new()
+	rooms[2] = room:new()
+	rooms[1]:init(1,1,6,5,true)
+	rooms[2]:init(6,1,6,5)
 	
 	--init players and enemies
 	actors[1] = player:new()
-	actors[1].x = 1
-	actors[1].y = 1
+
 	for i=2, 3 do
 		actors[i] = enemy:new()
 		actors[i].x = flr(rnd(32))
 		actors[i].y = flr(rnd(32))
 	end	
+
+	init_mission()
 end
 
 function _update()
@@ -298,7 +371,11 @@ end
 function _draw()
 	--clear screen and draw map
 	cls()
-	map()
+	--map()
+
+	for rm in all(rooms) do
+		rm:draw()
+	end
 	
 	--draw all actors
 	for k, v in pairs(actors) do
