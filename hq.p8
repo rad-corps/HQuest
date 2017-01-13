@@ -272,13 +272,33 @@ function player:do_move_or_action_menu()
 			self.ml = player:rollmovementdice()
 			printh("player rolled: " .. self.ml)
 			self.state = "move"
+		elseif self.menu_selection == 2 then --move			
+			--check if enemy is adjacent
+			adjacent_enemies = self:get_adjacent_enemies()
+			if (#adjacent_enemies == 0) printh("no adjacent enemies")
+			if (#adjacent_enemies > 0) printh("adjacent enemies exist: " .. #adjacent_enemies)
 		elseif self.menu_selection == 5 then --end turn
 			actor_index += 1
 			self.move_used = false
 			self.menu_selection = 1
 		end
 	end
+end
 
+function player:get_adjacent_enemies()
+	local ret = {}
+
+	local neighbour_tiles = getneighbours({self.x, self.y})
+
+	for neighbour in all (neighbour_tiles) do
+		printh("neighbour tile: " .. neighbour[1] .. " " .. neighbour[2] .. " ".. neighbour[3] .. " ")
+		if neighbour[3] > 5 then --this is the traversal cost. cost of 6 is an enemy
+			printh("adding tile")
+			add(ret, neighbour)
+		end
+	end
+
+	return ret
 end
 
 function player:update()
@@ -530,7 +550,7 @@ end
 function addneighbourtileif(neighbours, x, y)
 	local obstructed = true
 
-	if x >= 0 and x <= map_w - 1 and y >= 0 and y <= map_h - 1 then
+	if x >= 0 and x < map_w and y >= 0 and y < map_h then
 		if mget(x, y) > wallid 	then				
 			obstructed = false						
 			--iterate through actor_list 			
