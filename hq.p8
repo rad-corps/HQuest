@@ -8,13 +8,20 @@ enemy={ml=7,x=0,y=0}
 room={}
 rooms={}
 timer=0
-map_sz=32
+map_w=34
+map_h=25
 move_or_action_menu = {}
 mission = {
 	starting_point = {3,3},
 	door_locations = {
 		{6,3},
-		{8,5}
+		{11,2},
+		{14,1},
+		{22,2},
+		{27,2},
+		{6,9},
+		{11,9},
+		{18,9}
 	},
 	enemies = {
 		{10,2},
@@ -121,13 +128,14 @@ function room:new(o)
 end
 
 function room:init(x, y, w, h,hall,vis)
-	
+	if hall == nil then hall = false end
+
 	self.x = x
 	self.y = y
 	self.w = w
 	self.h = h
 
-	if hall == nil or hall == false then
+	if hall == false then
 		--include the walls as well. 
 		self.x -= 1 
 		self.y -= 1
@@ -228,12 +236,7 @@ function player:move()
 	 --decrement movesleft if player moved
 	if self.x ~= prevx or self.y ~= prevy then
 		self.ml -= 1
-
-		--if we are on a door space
-		if mget(self.x, self.y) == 48 then
-			reveal_rooms(self.x, self.y)
-		end
-
+		reveal_rooms(self.x, self.y)
 	end	
 
 	--next actor if we run out of moves
@@ -317,13 +320,13 @@ function enemy:update()
 	
 		timer = 0
 		
-		if self.ml == 0 then
+		if self.ml == 0 or self.path == nil then
 			self:finishmove()			
 		else
 	
 			self.ml -= 1
 			
-
+		
 			if self.pathindex > #self.path  then
 				self.ml = 0
 			else
@@ -482,10 +485,10 @@ function vectoindex(vec)
  return maptoindex(vec[1],vec[2])
 end
 function maptoindex(x, y)
- return ((x+1) * map_sz) + y
+ return ((x+1) * map_w) + y
 end
 function indextomap(index)
- local x = (index-1)/map_sz
+ local x = (index-1)/map_w
  local y = index - (x*w)
  return {x,y}
 end
@@ -511,7 +514,7 @@ end
 function addneighbourtileif(neighbours, x, y)
 	local obstructed = true
 
-	if x >= 0 and x <= map_sz - 1 and y >= 0 and y <= map_sz - 1 then
+	if x >= 0 and x <= map_w - 1 and y >= 0 and y <= map_h - 1 then
 		if mget(x, y) > wallid 	then				
 			obstructed = false						
 			--iterate through actor_list 			
@@ -552,8 +555,8 @@ end
 
 -- find the first location of a specific tile type
 function getspecialtile(tileid)
- for x=0,map_sz - 1 do
-  for y=0,map_sz - 1 do
+ for x=0,map_w - 1 do
+  for y=0,map_h - 1 do
    local tile = mget(x,y)
    if tile == tileid then
     return {x,y}
