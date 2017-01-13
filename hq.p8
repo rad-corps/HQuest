@@ -58,18 +58,18 @@ function init_rooms_array()
 	rooms[20]:init(19,18,4,5)
 	rooms[21]:init(24,19,3,4)
 	rooms[22]:init(28,19,4,4)
-	rooms[23]:init(0,0,33,1,true)
-	rooms[24]:init(33,0,1,24,true)
-	rooms[25]:init(0,24,33,1,true)
-	rooms[26]:init(0,0,1,24,true)
-	rooms[27]:init(16,0,2,9,true)
-	rooms[28]:init(21,12,13,1,true)
-	rooms[29]:init(16,16,2,9,true)
-	rooms[30]:init(0,12,13,1,true)
-	rooms[31]:init(12,8,10,1,true)
-	rooms[32]:init(21,8,1,9,true)
-	rooms[33]:init(12,16,10,1,true)
-	rooms[34]:init(12,8,1,9,true)
+	rooms[23]:init(0,0,33,2,true)
+	rooms[24]:init(32,0,2,24,true)
+	rooms[25]:init(0,23,33,2,true)
+	rooms[26]:init(0,0,2,24,true)
+	rooms[27]:init(15,0,4,9,true)
+	rooms[28]:init(21,11,13,3,true)
+	rooms[29]:init(15,16,4,9,true)
+	rooms[30]:init(0,11,13,3,true)
+	rooms[31]:init(11,7,12,3,true)
+	rooms[32]:init(20,7,3,11,true)
+	rooms[33]:init(11,15,12,3,true)
+	rooms[34]:init(11,7,3,11,true)
 
 end
 
@@ -115,7 +115,7 @@ function reveal_rooms(x,y)
 end
 
 function cell_in_room(rm,x,y)
-	if rm.x <= x  and rm.x + rm.w >= x and rm.y <= y and rm.h + rm.y >= y then
+	if rm.x <= x  and rm.x + rm.w > x and rm.y <= y and rm.h + rm.y > y then
 		return true
 	end
 	return false
