@@ -11,6 +11,7 @@ timer=0
 map_w=34
 map_h=25
 move_or_action_menu = {}
+cam_cache = {0,0}
 mission = {
 	starting_point = {3,3},
 	door_locations = {
@@ -28,6 +29,23 @@ mission = {
 		{10,4}
 	}
 }
+
+gui = {}
+
+function set_camera(x,y)
+	cam_cache = {x,y}
+	camera(x,y)
+end
+
+function restore_camera()
+	camera(cam_cache[1], cam_cache[2])
+end
+
+function gui:draw()
+	camera()
+	rectfill(0,117,128,128, 4)
+	restore_camera()
+end
 
 function init_rooms_array()
 	
@@ -179,34 +197,26 @@ end
 function player:draw()
 	--centre camera 
 	if actor_index == 1 then
-		camera(self.x * 8 - 64, self.y * 8 - 64)	
+		set_camera(self.x * 8 - 64, self.y * 8 - 64)
 	end
 
 	spr(0,self.x * 8, self.y * 8)
-
-	textanimcolour += 1
-	if textanimcolour > 15 then textanimcolour = 0 end
 
 	if actor_index == 1 then --draw text on screen
 				
 		camera()
 
 		if self.state == "move" then				
-			print("moves left " .. self.ml, 10, 110, 11)		
+			print("       moves left " .. self.ml, 10, 120, 7)		
 		elseif self.state == "move_or_action" then
-			local yoffset = 80
-			for i=1, #move_or_action_menu do				
-				local text_col = 11
-				if i == self.menu_selection then text_col = textanimcolour end
-				print(move_or_action_menu[i], 10, yoffset, text_col)
-				yoffset += 10
-			end	 		
+				print("\x8b" .. move_or_action_menu[self.menu_selection] .. "\x91", 15, 120, 7)			
 		elseif self.state == "action" then
+
 
 		end
 	end
 	if actor_index == 1 then
-		camera(self.x * 8 - 64, self.y * 8 - 64)	
+		restore_camera()	
 	end
 end
 
@@ -252,8 +262,8 @@ function player:move()
 end
 
 function player:do_move_or_action_menu()
-	if (btnp(2)) self.menu_selection -= 1
-	if (btnp(3)) self.menu_selection += 1
+	if (btnp(0)) self.menu_selection -= 1
+	if (btnp(1)) self.menu_selection += 1
 	if self.menu_selection < 1 then self.menu_selection = #move_or_action_menu end
 	if self.menu_selection > #move_or_action_menu then self.menu_selection = 1 end
 
@@ -356,7 +366,7 @@ function enemy:update()
 	end
 
 	--centre camera
- 	camera(self.x * 8 - 64, self.y * 8 - 64)
+ 	set_camera(self.x * 8 - 64, self.y * 8 - 64)
 end
 
 function enemy:draw()
@@ -428,13 +438,13 @@ end
 function _init()
 	--state = "move_or_action"
 	wallid = 32
-	textanimcolour = 0
+	textanimcolour = 5
 
-	move_or_action_menu[1] = "move"
-	move_or_action_menu[2] = "attack"	
-	move_or_action_menu[3] = "search for traps"
-	move_or_action_menu[4] = "search for treasure"
-	move_or_action_menu[5] = "finish turn"
+	move_or_action_menu[1] = "         move        "
+	move_or_action_menu[2] = "        attack       "	
+	move_or_action_menu[3] = "  search for traps   "
+	move_or_action_menu[4] = " search for treasure "
+	move_or_action_menu[5] = "    finish turn      "
 
 	init_rooms_array()
 	
@@ -457,11 +467,15 @@ function _draw()
 	for rm in all(rooms) do
 		rm:draw()
 	end
+
+	gui:draw()
 	
 	--draw all actors
 	for k, v in pairs(actors) do
 		v:draw()
 	end
+
+	
 end
 
 
