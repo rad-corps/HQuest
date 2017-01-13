@@ -22,6 +22,50 @@ mission = {
 	}
 }
 
+function init_rooms_array()
+	
+	for i=1,34 do
+		add(rooms, room:new())
+	end
+
+	rooms[1]:init(2,2,4,3,false,true)
+	rooms[2]:init(7,2,4,3)
+	rooms[3]:init(12,2,3,5)
+	rooms[3]:init(12,2,3,5)
+	rooms[4]:init(2,6,4,5)
+	rooms[5]:init(7,6,4,5)
+	rooms[6]:init(19,2,3,5)
+	rooms[7]:init(23,2,4,4)
+	rooms[8]:init(28,2,4,4)
+	rooms[9]:init(23,7,4,4)
+	rooms[10]:init(28,7,4,4)
+	rooms[11]:init(14,10,6,5)
+	rooms[12]:init(2,14,3,4)
+	rooms[13]:init(6,14,2,3)
+	rooms[14]:init(9,14,2,3)
+	rooms[15]:init(2,19,3,4)
+	rooms[16]:init(6,18,5,5)
+	rooms[17]:init(12,18,3,5)
+	rooms[18]:init(23,14,4,4)
+	rooms[19]:init(28,14,4,4)
+	rooms[20]:init(19,18,4,5)
+	rooms[21]:init(24,19,3,4)
+	rooms[22]:init(28,19,4,4)
+	rooms[23]:init(0,0,33,1,true)
+	rooms[24]:init(33,0,1,24,true)
+	rooms[25]:init(0,24,33,1,true)
+	rooms[26]:init(0,0,1,24,true)
+	rooms[27]:init(16,0,2,9,true)
+	rooms[28]:init(21,12,13,1,true)
+	rooms[29]:init(16,16,2,9,true)
+	rooms[30]:init(0,12,13,1,true)
+	rooms[31]:init(12,8,10,1,true)
+	rooms[32]:init(21,8,1,9,true)
+	rooms[33]:init(12,16,10,1,true)
+	rooms[34]:init(12,8,1,9,true)
+
+end
+
 function init_mission()
 	for dl in all (mission.door_locations) do
 		mset(dl[1], dl[2],48)
@@ -76,11 +120,21 @@ function room:new(o)
 	return o
 end
 
-function room:init(x, y, w, h, vis)
+function room:init(x, y, w, h,hall,vis)
+	
 	self.x = x
 	self.y = y
 	self.w = w
-	self.h = h	
+	self.h = h
+
+	if hall == nil or hall == false then
+		--include the walls as well. 
+		self.x -= 1 
+		self.y -= 1
+		self.w += 2
+		self.h += 2
+	end
+
 	if vis == nil then 
 		self.visible = false
 	else
@@ -377,10 +431,7 @@ function _init()
 	move_or_action_menu[4] = "search for treasure"
 	move_or_action_menu[5] = "finish turn"
 
-	rooms[1] = room:new()
-	rooms[2] = room:new()
-	rooms[1]:init(1,1,6,5,true)
-	rooms[2]:init(6,1,6,5)
+	init_rooms_array()
 	
 	--init players and enemies
 	actors[1] = player:new()
