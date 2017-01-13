@@ -89,6 +89,7 @@ function init_mission()
 		local enemy = enemy:new()
 		enemy.x = en[1]
 		enemy.y = en[2]
+		enemy.active = false
 		add(actors, enemy)
 	end	
 end
@@ -101,14 +102,14 @@ function reveal_rooms(x,y)
 		if cell_in_room(rm, x, y) then
 			printh("revealing room: " .. rm.x .. " " .. rm.y)
 			rm.visible = true
-		end
 
-		--check all enemies collision with room
-		for i=2, #actors do
-			if cell_in_room(rm, actors[i].x, actors[i].y) then
-				printh("setting actor to active: " .. i )
-				actors[i].active = true
-			end
+			--check all enemies collision with room
+			for i=2, #actors do
+				if cell_in_room(rm, actors[i].x, actors[i].y) then
+					printh("setting actor to active: " .. i )
+					actors[i].active = true
+				end
+			end			
 		end
 	end
 end
@@ -286,8 +287,7 @@ end
 function enemy:new(o)
 	o = o or {}
 	setmetatable(o, self)
- 	self.__index = self
- 	self.active = false
+ 	self.__index = self 	
 	return o
 end
 
@@ -306,6 +306,8 @@ end
 function enemy:update()
 	
 	if (self.active == false) then 
+		printh("enemy inactive")
+		self:finishmove()
 		do return end
 	end
 
