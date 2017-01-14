@@ -124,6 +124,7 @@ function player:new (o)
 	self.mp = 3
 	self.sprite = 0
 	self.human = true
+	self.alive = true
 	return o
 end
 
@@ -214,7 +215,7 @@ function player:do_move_or_action_menu()
 			end
 			printh("player rolled: " .. self.ml)
 			self.state = "move"
-		elseif self.menu_selection == 2 then --attack			
+		elseif self.menu_selection == 2 and self.action_used == false then --attack			
 			--check if enemy is adjacent TODO this shouldnt be called every frame
 			self.adjacent_enemies = self:get_adjacent_enemies()
 			if (#self.adjacent_enemies == 0) printh("no adjacent enemies")
@@ -249,24 +250,26 @@ function player:do_attack_menu()
 		if self.attack_selection > #self.adjacent_enemies then
 			self.attack_selection = 1
 		end
-	elseif (btnp(4)) then --z
+	elseif (btnp(4)) then --z go back
 		self.adjacent_enemies = nil
 		self.attack_selection = nil
 		self.state = "move_or_action"
-	elseif (btnp(5)) then --x
+	elseif (btnp(5)) then --x attack enemy
 		self:attack_enemy()
+		self.action_used = true
+		self.state = "move_or_action"
 	end		
 end
 
 function player:attack_enemy()
 	--get the enemy
 	local en = self.adjacent_enemies[self.attack_selection]
-	do_actor_attack(self, en)
 	printh("attacking a " .. en.name .. " who has " .. en.bp .. " body points")
-
+	do_actor_attack(self, en)
 end
 
 function do_actor_attack(attacker, defender)
+	--human players get 2 sides of dice for defence, ai get 1
 	local defender_def_dice_sides = 2
 	if defender.human == nil then
 		defender_def_dice_sides = 1
@@ -285,7 +288,7 @@ function do_actor_attack(attacker, defender)
 	for i=1, attack_dice do	
 		local attack_die = flr(rnd(6))
 		printh("rolled attack die: " .. attack_die)
-		if attack_die <= 2 then --attack die always has 3 spots
+		if attack_die <= 2 then --attack die always has 3 sides
 			attack_hits += 1
 		end
 	end
@@ -303,6 +306,14 @@ function do_actor_attack(attacker, defender)
 	printh("attack - defence = : " .. attack_hits - defence_hits)
 
 	--do the math
+	if attack_hits > defence_hits then
+		defender.bp -= attack_hits - defence_hits
+		if defender.bp <= 0 then
+			defender.alive = false
+			defender.active = false
+			printh(defender.name .. " has been killed")
+		end
+	end
 
 	--player has 2 defence sides on dice where enemy has 1
 
@@ -338,6 +349,7 @@ function enemy:init(en)
 	self.y = en[2]
 	self.type = en[3]
 	self.active = false
+	self.alive = true
 
 	--get enemy data
 	local ed = enemy_type[self.type]
@@ -511,7 +523,9 @@ function reveal_rooms(x,y)
 			for i=2, #actors do
 				if cell_in_room(rm, actors[i].x, actors[i].y) then
 					printh("setting actor to active: " .. i )
-					actors[i].active = true
+					if actors[i].alive == true then
+						actors[i].active = true
+					end
 				end
 			end			
 		end
