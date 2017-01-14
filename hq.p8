@@ -32,9 +32,20 @@ mission = {
 
 gui = {}
 
+function gui:new(o)
+	o = o or {}   -- create object if user does not provide one
+	setmetatable(o, self)
+	self.__index = self
+	self.animator = 5
+	return o
+end
+
 function gui:draw()
 	camera()
 	rectfill(0,117,128,128, 4)
+
+	self.animator += 1
+	if self.animator > 7 then self.animator = 5 end
 
 	if actor_index == 1 then --draw player GUI
 				
@@ -42,11 +53,13 @@ function gui:draw()
 			print("       moves left " .. actors[1].ml, 10, 120, 7)		
 		elseif actors[1].state == "move_or_action" then
 				print("\x8b" .. move_or_action_menu[actors[1].menu_selection] .. "\x91", 15, 120, 7)			
-		elseif actors[1].state == "attack_menu" then
+		elseif actors[1].state == "attack_menu" then			
+			print(" \x8bselect enemy\x91   attack\x97", 5, 120, 7)			
 			--get cell to hilight
-			local en = actors[1].adjacent_enemies[actors[1].attack_selection]
+			local en = actors[1].adjacent_enemies[actors[1].attack_selection]			
 			restore_camera()
-			rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, 10)
+			rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, self.animator)
+
 		end
 	end
 
@@ -101,10 +114,33 @@ function player:new (o)
 	self.state = "move_or_action"
 	self.move_used = false
 	self.action_used = false
+	self.dice_rolled = false
+
+	self.name = "barbarian"
+	--self.ms = ed[2]
+	self.ap = 3
+	self.dp = 2
+	self.bp = 8
+	self.mp = 3
+	self.sprite = 0
+	self.human = true
 	return o
 end
 
+function player:update()
+	if self.state == "move" then
+		self:move()
+	elseif self.state == "move_or_action" then
+		self:do_move_or_action_menu()
+	elseif self.state == "action" then
+
+	elseif self.state == "attack_menu" then
+		self:do_attack_menu()
+	end
+end
+
 function player:rollmovementdice()
+	self.dice_rolled = true
 	return flr(rnd(6)) + flr(rnd(6)) + 2
 end
 
@@ -129,7 +165,10 @@ function player:move()
 	if (btnp(2)) self.y -= 1
 	if (btnp(3)) self.y += 1
 	if (btnp(4)) printh("button 4 pressed")
-	if (btnp(5)) printh("button 5 pressed")
+	if (btnp(5)) then 
+		self.state = "move_or_action"
+		do return end
+	end
  
  	--check collision with walls
 	if ( mget(self.x, self.y) == wallid )	then
@@ -170,11 +209,13 @@ function player:do_move_or_action_menu()
 
 	if (btnp(5)) then
 		if self.menu_selection == 1 and self.move_used == false then --move			
-			self.ml = player:rollmovementdice()
+			if self.dice_rolled == false then
+				self.ml = player:rollmovementdice()
+			end
 			printh("player rolled: " .. self.ml)
 			self.state = "move"
 		elseif self.menu_selection == 2 then --attack			
-			--check if enemy is adjacent
+			--check if enemy is adjacent TODO this shouldnt be called every frame
 			self.adjacent_enemies = self:get_adjacent_enemies()
 			if (#self.adjacent_enemies == 0) printh("no adjacent enemies")
 			if (#self.adjacent_enemies > 0) then
@@ -190,8 +231,81 @@ function player:do_move_or_action_menu()
 			actor_index += 1
 			self.move_used = false
 			self.menu_selection = 1
+			self.attack_selection = nil
+			self.adjacent_enemies = nil
+			self.dice_rolled = false
 		end
 	end
+end
+
+function player:do_attack_menu()
+	if (btnp(0)) then --Left arrow
+		self.attack_selection -= 1
+		if self.attack_selection == 0 then
+			self.attack_selection = #self.adjacent_enemies
+		end		
+	elseif (btnp(1)) then --right arrow
+		self.attack_selection += 1
+		if self.attack_selection > #self.adjacent_enemies then
+			self.attack_selection = 1
+		end
+	elseif (btnp(4)) then --z
+		self.adjacent_enemies = nil
+		self.attack_selection = nil
+		self.state = "move_or_action"
+	elseif (btnp(5)) then --x
+		self:attack_enemy()
+	end		
+end
+
+function player:attack_enemy()
+	--get the enemy
+	local en = self.adjacent_enemies[self.attack_selection]
+	do_actor_attack(self, en)
+	printh("attacking a " .. en.name .. " who has " .. en.bp .. " body points")
+
+end
+
+function do_actor_attack(attacker, defender)
+	local defender_def_dice_sides = 2
+	if defender.human == nil then
+		defender_def_dice_sides = 1
+	end
+
+	--get number of attacker's attack dice
+	local attack_dice = attacker.ap
+
+	--get number of defender's defence dice
+	local defence_dice = defender.dp
+
+	local attack_hits = 0
+	local defence_hits = 0
+
+	--roll both sets
+	for i=1, attack_dice do	
+		local attack_die = flr(rnd(6))
+		printh("rolled attack die: " .. attack_die)
+		if attack_die <= 2 then --attack die always has 3 spots
+			attack_hits += 1
+		end
+	end
+
+	for i=1, defence_dice do
+		local defence_die = flr(rnd(6))
+		printh("rolled defence die: " .. defence_die)
+		if defence_dice < defender_def_dice_sides then 
+			defence_hits += 1
+		end
+	end	
+
+	printh("attack hits: " .. attack_hits)
+	printh("defence hits: " .. defence_hits)
+	printh("attack - defence = : " .. attack_hits - defence_hits)
+
+	--do the math
+
+	--player has 2 defence sides on dice where enemy has 1
+
 end
 
 --this could be simplified
@@ -209,16 +323,6 @@ function player:get_adjacent_enemies()
 	end
 
 	return ret
-end
-
-function player:update()
-	if self.state == "move" then
-		self:move()
-	elseif self.state == "move_or_action" then
-		self:do_move_or_action_menu()
-	elseif self.state == "action" then
-
-	end
 end
 
 --enemy functions
@@ -333,6 +437,7 @@ function _init()
 	move_or_action_menu[5] = "    finish turn      "
 
 	init_rooms_array()
+	my_gui = gui:new()
 	
 	--init players and enemies
 	actors[1] = player:new()
@@ -370,14 +475,14 @@ function _draw()
 		v:draw()
 	end
 
-	gui:draw()	
+	my_gui:draw()	
 end
 
 --helper functions
 function init_mission()
 	for dl in all (mission.door_locations) do
 		mset(dl[1], dl[2],48)
-	end
+	end	
 
 	actors[1].x = mission.starting_point[1]
 	actors[1].y = mission.starting_point[2]
