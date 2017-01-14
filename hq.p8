@@ -24,119 +24,33 @@ mission = {
 		{11,9},
 		{18,9}
 	},
-	enemies = {
-		{10,2},
-		{10,4}
+	enemies = { --x, y, type
+		{10,2,1},
+		{10,4,2}
 	}
 }
 
 gui = {}
 
-function set_camera(x,y)
-	cam_cache = {x,y}
-	camera(x,y)
-end
-
-function restore_camera()
-	camera(cam_cache[1], cam_cache[2])
-end
-
 function gui:draw()
 	camera()
 	rectfill(0,117,128,128, 4)
-	restore_camera()
-end
 
-function init_rooms_array()
-	
-	for i=1,34 do
-		add(rooms, room:new())
-	end
-
-	rooms[1]:init(2,2,4,3,false,true)
-	rooms[2]:init(7,2,4,3)
-	rooms[3]:init(12,2,3,5)
-	rooms[3]:init(12,2,3,5)
-	rooms[4]:init(2,6,4,5)
-	rooms[5]:init(7,6,4,5)
-	rooms[6]:init(19,2,3,5)
-	rooms[7]:init(23,2,4,4)
-	rooms[8]:init(28,2,4,4)
-	rooms[9]:init(23,7,4,4)
-	rooms[10]:init(28,7,4,4)
-	rooms[11]:init(14,10,6,5)
-	rooms[12]:init(2,14,3,4)
-	rooms[13]:init(6,14,2,3)
-	rooms[14]:init(9,14,2,3)
-	rooms[15]:init(2,19,3,4)
-	rooms[16]:init(6,18,5,5)
-	rooms[17]:init(12,18,3,5)
-	rooms[18]:init(23,14,4,4)
-	rooms[19]:init(28,14,4,4)
-	rooms[20]:init(19,18,4,5)
-	rooms[21]:init(24,19,3,4)
-	rooms[22]:init(28,19,4,4)
-	rooms[23]:init(0,0,33,2,true)
-	rooms[24]:init(32,0,2,24,true)
-	rooms[25]:init(0,23,33,2,true)
-	rooms[26]:init(0,0,2,24,true)
-	rooms[27]:init(15,0,4,9,true)
-	rooms[28]:init(21,11,13,3,true)
-	rooms[29]:init(15,16,4,9,true)
-	rooms[30]:init(0,11,13,3,true)
-	rooms[31]:init(11,7,12,3,true)
-	rooms[32]:init(20,7,3,11,true)
-	rooms[33]:init(11,15,12,3,true)
-	rooms[34]:init(11,7,3,11,true)
-
-end
-
-function init_mission()
-	for dl in all (mission.door_locations) do
-		mset(dl[1], dl[2],48)
-	end
-
-	actors[1].x = mission.starting_point[1]
-	actors[1].y = mission.starting_point[2]
-
-	--add the enemies
-	for en in all(mission.enemies) do
-		--create a new enemy based on the enemy data
-		
-		printh("creating enemy: " .. en[1] .. ", " .. en[2])
-		local enemy = enemy:new()
-		enemy.x = en[1]
-		enemy.y = en[2]
-		enemy.active = false
-		add(actors, enemy)
-	end	
-end
-
-function reveal_rooms(x,y)
-	printh("reveal rooms: " .. x .. ", " .. y)
-
-	for rm in all(rooms) do
-		--check player collision with room
-		if cell_in_room(rm, x, y) then
-			printh("revealing room: " .. rm.x .. " " .. rm.y)
-			rm.visible = true
-
-			--check all enemies collision with room
-			for i=2, #actors do
-				if cell_in_room(rm, actors[i].x, actors[i].y) then
-					printh("setting actor to active: " .. i )
-					actors[i].active = true
-				end
-			end			
+	if actor_index == 1 then --draw player GUI
+				
+		if actors[1].state == "move" then				
+			print("       moves left " .. actors[1].ml, 10, 120, 7)		
+		elseif actors[1].state == "move_or_action" then
+				print("\x8b" .. move_or_action_menu[actors[1].menu_selection] .. "\x91", 15, 120, 7)			
+		elseif actors[1].state == "attack_menu" then
+			--get cell to hilight
+			local en = actors[1].adjacent_enemies[actors[1].attack_selection]
+			restore_camera()
+			rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, 10)
 		end
 	end
-end
 
-function cell_in_room(rm,x,y)
-	if rm.x <= x  and rm.x + rm.w > x and rm.y <= y and rm.h + rm.y > y then
-		return true
-	end
-	return false
+	restore_camera()
 end
 
 function room:new(o)
@@ -202,19 +116,6 @@ function player:draw()
 
 	spr(0,self.x * 8, self.y * 8)
 
-	if actor_index == 1 then --draw text on screen
-				
-		camera()
-
-		if self.state == "move" then				
-			print("       moves left " .. self.ml, 10, 120, 7)		
-		elseif self.state == "move_or_action" then
-				print("\x8b" .. move_or_action_menu[self.menu_selection] .. "\x91", 15, 120, 7)			
-		elseif self.state == "action" then
-
-
-		end
-	end
 	if actor_index == 1 then
 		restore_camera()	
 	end
@@ -272,11 +173,19 @@ function player:do_move_or_action_menu()
 			self.ml = player:rollmovementdice()
 			printh("player rolled: " .. self.ml)
 			self.state = "move"
-		elseif self.menu_selection == 2 then --move			
+		elseif self.menu_selection == 2 then --attack			
 			--check if enemy is adjacent
-			adjacent_enemies = self:get_adjacent_enemies()
-			if (#adjacent_enemies == 0) printh("no adjacent enemies")
-			if (#adjacent_enemies > 0) printh("adjacent enemies exist: " .. #adjacent_enemies)
+			self.adjacent_enemies = self:get_adjacent_enemies()
+			if (#self.adjacent_enemies == 0) printh("no adjacent enemies")
+			if (#self.adjacent_enemies > 0) then
+				printh("adjacent enemies exist: " .. #self.adjacent_enemies)
+				for en in all(self.adjacent_enemies) do 
+					printh(en.name)
+				end
+				self.state = "attack_menu"
+				self.attack_selection = 1
+			end
+
 		elseif self.menu_selection == 5 then --end turn
 			actor_index += 1
 			self.move_used = false
@@ -285,6 +194,7 @@ function player:do_move_or_action_menu()
 	end
 end
 
+--this could be simplified
 function player:get_adjacent_enemies()
 	local ret = {}
 
@@ -294,7 +204,7 @@ function player:get_adjacent_enemies()
 		printh("neighbour tile: " .. neighbour[1] .. " " .. neighbour[2] .. " ".. neighbour[3] .. " ")
 		if neighbour[3] > 5 then --this is the traversal cost. cost of 6 is an enemy
 			printh("adding tile")
-			add(ret, neighbour)
+			add(ret, get_enemy_on_tile(neighbour[1], neighbour[2]))
 		end
 	end
 
@@ -302,7 +212,6 @@ function player:get_adjacent_enemies()
 end
 
 function player:update()
-	
 	if self.state == "move" then
 		self:move()
 	elseif self.state == "move_or_action" then
@@ -313,12 +222,29 @@ function player:update()
 end
 
 --enemy functions
-
 function enemy:new(o)
 	o = o or {}
 	setmetatable(o, self)
  	self.__index = self 	
 	return o
+end
+
+function enemy:init(en)
+	self.x = en[1]
+	self.y = en[2]
+	self.type = en[3]
+	self.active = false
+
+	--get enemy data
+	local ed = enemy_type[self.type]
+
+	self.name = ed[1]
+	self.ms = ed[2]
+	self.ap = ed[3]
+	self.dp = ed[4]
+	self.bp = ed[5]
+	self.mp = ed[6]
+	self.sprite = ed[7]
 end
 
 function enemy:finishmove()
@@ -331,7 +257,6 @@ function enemy:finishmove()
 		actor_index = 1
 	end
 end
-
 
 function enemy:update()
 	
@@ -395,6 +320,171 @@ function enemy:draw()
 	end
 end
 
+--pico 8 functions
+function _init()
+	--state = "move_or_action"
+	wallid = 32
+	textanimcolour = 5
+
+	move_or_action_menu[1] = "         move        "
+	move_or_action_menu[2] = "        attack       "	
+	move_or_action_menu[3] = "  search for traps   "
+	move_or_action_menu[4] = " search for treasure "
+	move_or_action_menu[5] = "    finish turn      "
+
+	init_rooms_array()
+	
+	--init players and enemies
+	actors[1] = player:new()
+
+	enemy_type = {}
+
+	add(enemy_type, {"goblin",10,2,1,1,1, 16})
+	add(enemy_type, {"skeleton",6,2,2,1,0, 16})
+	add(enemy_type, {"zombie",5,2,3,1,0,16})
+	add(enemy_type, {"orc",8,3,2,1,2,16})
+	add(enemy_type, {"fimir",6,3,3,2,3,16})
+	add(enemy_type, {"mummy",4,3,4,2,0,16})
+	add(enemy_type, {"chaos warrior",7,4,4,3,3,16})
+	add(enemy_type, {"gargoyle",6,4,5,3,4,16})
+
+	init_mission()
+end
+
+function _update()
+	--update only the current actor
+	actors[actor_index]:update()
+end
+
+function _draw()
+	--clear screen and draw map
+	cls()
+	--map()
+
+	for rm in all(rooms) do
+		rm:draw()
+	end	
+	
+	--draw all actors
+	for k, v in pairs(actors) do
+		v:draw()
+	end
+
+	gui:draw()	
+end
+
+--helper functions
+function init_mission()
+	for dl in all (mission.door_locations) do
+		mset(dl[1], dl[2],48)
+	end
+
+	actors[1].x = mission.starting_point[1]
+	actors[1].y = mission.starting_point[2]
+
+	--add the enemies
+	for en in all(mission.enemies) do
+		--create a new enemy based on the enemy data
+		
+		printh("creating enemy: " .. en[1] .. ", " .. en[2])
+		local enemy = enemy:new()
+		enemy:init(en)
+		add(actors, enemy)
+	end	
+end
+
+function reveal_rooms(x,y)
+	printh("reveal rooms: " .. x .. ", " .. y)
+
+	for rm in all(rooms) do
+		--check player collision with room
+		if cell_in_room(rm, x, y) then
+			printh("revealing room: " .. rm.x .. " " .. rm.y)
+			rm.visible = true
+
+			--check all enemies collision with room
+			for i=2, #actors do
+				if cell_in_room(rm, actors[i].x, actors[i].y) then
+					printh("setting actor to active: " .. i )
+					actors[i].active = true
+				end
+			end			
+		end
+	end
+end
+
+function cell_in_room(rm,x,y)
+	if rm.x <= x  and rm.x + rm.w > x and rm.y <= y and rm.h + rm.y > y then
+		return true
+	end
+	return false
+end
+
+function get_enemy_on_tile(x,y)
+	local ret = nil
+
+	for i=2,#actors do
+		if actors[i].x == x and actors[i].y == y then
+			ret = actors[i]
+		end
+	end
+	return ret
+end
+
+function set_camera(x,y)
+	cam_cache = {x,y}
+	camera(x,y)
+end
+
+function restore_camera()
+	camera(cam_cache[1], cam_cache[2])
+end
+
+function init_rooms_array()
+	
+	for i=1,34 do
+		add(rooms, room:new())
+	end
+
+	rooms[1]:init(2,2,4,3,false,true)
+	rooms[2]:init(7,2,4,3)
+	rooms[3]:init(12,2,3,5)
+	rooms[3]:init(12,2,3,5)
+	rooms[4]:init(2,6,4,5)
+	rooms[5]:init(7,6,4,5)
+	rooms[6]:init(19,2,3,5)
+	rooms[7]:init(23,2,4,4)
+	rooms[8]:init(28,2,4,4)
+	rooms[9]:init(23,7,4,4)
+	rooms[10]:init(28,7,4,4)
+	rooms[11]:init(14,10,6,5)
+	rooms[12]:init(2,14,3,4)
+	rooms[13]:init(6,14,2,3)
+	rooms[14]:init(9,14,2,3)
+	rooms[15]:init(2,19,3,4)
+	rooms[16]:init(6,18,5,5)
+	rooms[17]:init(12,18,3,5)
+	rooms[18]:init(23,14,4,4)
+	rooms[19]:init(28,14,4,4)
+	rooms[20]:init(19,18,4,5)
+	rooms[21]:init(24,19,3,4)
+	rooms[22]:init(28,19,4,4)
+	rooms[23]:init(0,0,33,2,true)
+	rooms[24]:init(32,0,2,24,true)
+	rooms[25]:init(0,23,33,2,true)
+	rooms[26]:init(0,0,2,24,true)
+	rooms[27]:init(15,0,4,9,true)
+	rooms[28]:init(21,11,13,3,true)
+	rooms[29]:init(15,16,4,9,true)
+	rooms[30]:init(0,11,13,3,true)
+	rooms[31]:init(11,7,12,3,true)
+	rooms[32]:init(20,7,3,11,true)
+	rooms[33]:init(11,15,12,3,true)
+	rooms[34]:init(11,7,3,11,true)
+
+end
+
+--astar specific
 function enemy:calcpath()
 	
 	start = {self.x, self.y} --enemy pos
@@ -455,51 +545,6 @@ function enemy:calcpath()
 	end
 end
 
-function _init()
-	--state = "move_or_action"
-	wallid = 32
-	textanimcolour = 5
-
-	move_or_action_menu[1] = "         move        "
-	move_or_action_menu[2] = "        attack       "	
-	move_or_action_menu[3] = "  search for traps   "
-	move_or_action_menu[4] = " search for treasure "
-	move_or_action_menu[5] = "    finish turn      "
-
-	init_rooms_array()
-	
-	--init players and enemies
-	actors[1] = player:new()
-
-	init_mission()
-end
-
-function _update()
-	--update only the current actor
-	actors[actor_index]:update()
-end
-
-function _draw()
-	--clear screen and draw map
-	cls()
-	--map()
-
-	for rm in all(rooms) do
-		rm:draw()
-	end
-
-	gui:draw()
-	
-	--draw all actors
-	for k, v in pairs(actors) do
-		v:draw()
-	end
-
-	
-end
-
-
---astar specific
 -- pop the last element off a table
 function popend(t)
  local top = t[#t]
