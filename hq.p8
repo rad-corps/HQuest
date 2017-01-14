@@ -37,7 +37,28 @@ function gui:new(o)
 	setmetatable(o, self)
 	self.__index = self
 	self.animator = 5
+	self.messages = {}
 	return o
+end
+
+function gui:add_message(msg, callback)
+	local gui_msg = {msg, callback}
+	add(self.messages, gui_msg)
+end
+
+function gui:active_messages()
+	return #self.messages > 0
+end
+
+function gui:update()
+	if #self.messages > 0 then
+		if (btnp(5)) then 
+			if self.messages[1][2] != nil then
+				self.messages[1][2]()
+			end
+			pop(self.messages)
+		end
+	end
 end
 
 function gui:draw()
@@ -47,7 +68,10 @@ function gui:draw()
 	self.animator += 1
 	if self.animator > 7 then self.animator = 5 end
 
-	if actor_index == 1 then --draw player GUI
+	if #self.messages > 0 then
+		print(self.messages[1][1] .. "\x97", 10, 120, 7)		
+
+	elseif actor_index == 1 then --draw player GUI
 				
 		if actors[1].state == "move" then				
 			print("       moves left " .. actors[1].ml, 10, 120, 7)		
@@ -216,7 +240,7 @@ function player:do_move_or_action_menu()
 			printh("player rolled: " .. self.ml)
 			self.state = "move"
 		elseif self.menu_selection == 2 and self.action_used == false then --attack			
-			--check if enemy is adjacent TODO this shouldnt be called every frame
+			--check if enemy is adjacent todo this shouldnt be called every frame
 			self.adjacent_enemies = self:get_adjacent_enemies()
 			if (#self.adjacent_enemies == 0) printh("no adjacent enemies")
 			if (#self.adjacent_enemies > 0) then
@@ -240,12 +264,12 @@ function player:do_move_or_action_menu()
 end
 
 function player:do_attack_menu()
-	if (btnp(0)) then --Left arrow
+	if (btnp(0)) then --Left arrow (change selected enemy to attack)
 		self.attack_selection -= 1
 		if self.attack_selection == 0 then
 			self.attack_selection = #self.adjacent_enemies
 		end		
-	elseif (btnp(1)) then --right arrow
+	elseif (btnp(1)) then --right arrow (change selected enemy to attack)
 		self.attack_selection += 1
 		if self.attack_selection > #self.adjacent_enemies then
 			self.attack_selection = 1
@@ -268,57 +292,6 @@ function player:attack_enemy()
 	do_actor_attack(self, en)
 end
 
-function do_actor_attack(attacker, defender)
-	--human players get 2 sides of dice for defence, ai get 1
-	local defender_def_dice_sides = 2
-	if defender.human == nil then
-		defender_def_dice_sides = 1
-	end
-
-	--get number of attacker's attack dice
-	local attack_dice = attacker.ap
-
-	--get number of defender's defence dice
-	local defence_dice = defender.dp
-
-	local attack_hits = 0
-	local defence_hits = 0
-
-	--roll both sets
-	for i=1, attack_dice do	
-		local attack_die = flr(rnd(6))
-		printh("rolled attack die: " .. attack_die)
-		if attack_die <= 2 then --attack die always has 3 sides
-			attack_hits += 1
-		end
-	end
-
-	for i=1, defence_dice do
-		local defence_die = flr(rnd(6))
-		printh("rolled defence die: " .. defence_die)
-		if defence_dice < defender_def_dice_sides then 
-			defence_hits += 1
-		end
-	end	
-
-	printh("attack hits: " .. attack_hits)
-	printh("defence hits: " .. defence_hits)
-	printh("attack - defence = : " .. attack_hits - defence_hits)
-
-	--do the math
-	if attack_hits > defence_hits then
-		defender.bp -= attack_hits - defence_hits
-		if defender.bp <= 0 then
-			defender.alive = false
-			defender.active = false
-			printh(defender.name .. " has been killed")
-		end
-	end
-
-	--player has 2 defence sides on dice where enemy has 1
-
-end
-
 --this could be simplified
 function player:get_adjacent_enemies()
 	local ret = {}
@@ -329,7 +302,7 @@ function player:get_adjacent_enemies()
 		printh("neighbour tile: " .. neighbour[1] .. " " .. neighbour[2] .. " ".. neighbour[3] .. " ")
 		if neighbour[3] > 5 then --this is the traversal cost. cost of 6 is an enemy
 			printh("adding tile")
-			add(ret, get_enemy_on_tile(neighbour[1], neighbour[2]))
+			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
 		end
 	end
 
@@ -365,7 +338,7 @@ end
 
 function enemy:finishmove()
 	
-	self.ml = 7		
+	self.ml = self.ms	
 	self.path = nil
 	actor_index += 1
 
@@ -389,7 +362,7 @@ function enemy:update()
 		self.pathindex = 1
 	end
 
-	if timer >= 5 then
+	if timer >= 10 then
 	
 		timer = 0
 		
@@ -399,9 +372,21 @@ function enemy:update()
 	
 			self.ml -= 1
 			
-		
-			if self.pathindex > #self.path  then
+			--we rached the end of the A star path, we are probably next to the player, lets check to be sure		
+			if self.pathindex > #self.path  then				
 				self.ml = 0
+				local neighbours = getneighbours({self.x, self.y})
+				local player_adjacent = false
+				for nb in all(neighbours) do
+					--if player is adjacent. attack
+					if nb[1] == actors[1].x and nb[2] == actors[1].y then 
+						player_adjacent = true
+					end
+				end
+				
+				if player_adjacent == true then
+					do_actor_attack(self, actors[1])
+				end
 			else
 				local prevx = self.x
 				local prevy = self.y
@@ -426,8 +411,22 @@ function enemy:update()
 		end
 	end
 
-	--centre camera
+	--centre camera (not sure why im doing this at the end of enemy:update. todo look at)
  	set_camera(self.x * 8 - 64, self.y * 8 - 64)
+end
+
+function enemy:get_adjacent_player()
+	local ret = {}
+
+	local neighbour_tiles = getneighbours({self.x, self.y})
+
+	for neighbour in all (neighbour_tiles) do
+		if neighbour[1] == actor[1].x and neighbour[2] == actor[1].y then --this is the traversal cost. cost of 6 is an enemy
+			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
+		end
+	end
+
+	return ret
 end
 
 function enemy:draw()
@@ -446,7 +445,7 @@ function _init()
 	move_or_action_menu[2] = "        attack       "	
 	move_or_action_menu[3] = "  search for traps   "
 	move_or_action_menu[4] = " search for treasure "
-	move_or_action_menu[5] = "    finish turn      "
+	move_or_action_menu[5] = "     finish turn     "
 
 	init_rooms_array()
 	my_gui = gui:new()
@@ -469,8 +468,13 @@ function _init()
 end
 
 function _update()
-	--update only the current actor
-	actors[actor_index]:update()
+
+	if my_gui:active_messages() then 
+		my_gui:update()
+	else
+		--update only the current actor
+		actors[actor_index]:update()
+	end
 end
 
 function _draw()
@@ -491,6 +495,62 @@ function _draw()
 end
 
 --helper functions
+function do_actor_attack(attacker, defender)
+	gui:add_message(attacker.name .. " attacks " .. defender.name)
+
+	--human players get 2 sides of dice for defence, ai get 1
+	local defender_def_dice_sides = 2
+	if defender.human == nil then
+		defender_def_dice_sides = 1
+	end
+
+	--get number of attacker's attack dice
+	local attack_dice = attacker.ap
+
+	--get number of defender's defence dice
+	local defence_dice = defender.dp
+
+	local attack_hits = 0
+	local defence_hits = 0
+
+	--roll both sets
+	for i=1, attack_dice do	
+		local attack_die = flr(rnd(6))
+		
+		if attack_die <= 2 then --attack die always has 3 sides
+			attack_hits += 1
+		end
+	end
+	gui:add_message(attacker.name .. " rolls " .. attack_hits .. " attack")
+
+	for i=1, defence_dice do
+		local defence_die = flr(rnd(6))
+		if defence_die < defender_def_dice_sides then 
+			defence_hits += 1
+		end
+	end	
+	gui:add_message(defender.name .. " rolls " .. defence_hits .. " defence")
+
+	--do the math
+	if attack_hits > defence_hits then
+		local damage = attack_hits - defence_hits
+		defender.bp -= damage
+		gui:add_message(defender.name .. " loses " .. damage .. " bp")
+		if defender.bp > 0 then
+			gui:add_message(defender.name .. " has " .. defender.bp .. " bp left")
+		elseif defender.bp <= 0 then
+
+			gui:add_message(defender.name .. " has been killed", function()
+				defender.alive = false
+				defender.active = false
+				end)
+		end
+	else
+		gui:add_message(attacker.name .. " misses")
+	end
+
+end
+
 function init_mission()
 	for dl in all (mission.door_locations) do
 		mset(dl[1], dl[2],48)
@@ -539,10 +599,10 @@ function cell_in_room(rm,x,y)
 	return false
 end
 
-function get_enemy_on_tile(x,y)
+function get_actor_on_tile(x,y)
 	local ret = nil
 
-	for i=2,#actors do
+	for i=1,#actors do
 		if actors[i].x == x and actors[i].y == y then
 			ret = actors[i]
 		end
