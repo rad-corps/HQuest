@@ -13,25 +13,65 @@ map_h=25
 move_or_action_menu = {}
 cam_cache = {0,0}
 mission = {
-	starting_point = {3,3},
+	starting_point = {2,20},
 	door_locations = {
+		{4,5},
 		{6,3},
-		{11,2},
-		{14,1},
-		{22,2},
-		{27,2},
-		{6,9},
-		{11,9},
-		{18,9}
+		{11,3},
+		{4,11},
+		{9,11},
+		{1,15},
+		{13,17},
+		{11,20},
+		{3,23},
+		{8,23},
+		{18,20},
+		{20,12}
 	},
 	enemies = { --x, y, type
-		{9,2,1},
-		{10,4,2},
-		{16,0,1},
-		{10,0,1},
+		{3,3,2},
+		{4,3,2},
+		{8,2,3},
+		{8,3,6},
+		{8,4,3},
+		{12,4,2},
+		{12,5,6},
+		{13,5,2},
+		{4,8,1},
+		{8,9,1},
+		{9,9,1},
+		{0,17,1},
+		{3,15,1},
+		{3,16,4},
+		{9,19,4},
+		{10,20,4},
+		{13,19,1},
+		{13,21,1}, --todo enemy type (D) room
+		{16,24,4},
+		{20,21,4}, --todo enemy type (knight)
+		{21,20,4}, --todo enemy type (knight)
+		{22,19,3},
+		{15,14,3}, --todo enemy type (knight)
+		{18,14,3}, --todo enemy type (knight)
+		{18,11,3},
+		{16,11,8}
+
+	-- add(enemy_type, {"goblin",10,2,1,1,1, 16})
+	-- add(enemy_type, {"skeleton",6,2,2,1,0, 17})
+	-- add(enemy_type, {"zombie",5,2,3,1,0,18})
+	-- add(enemy_type, {"orc",8,3,2,1,2,19})
+	-- add(enemy_type, {"fimir",6,3,3,2,3,20})
+	-- add(enemy_type, {"mummy",4,3,4,2,0,21})
+	-- add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
+	-- add(enemy_type, {"gargoyle",6,4,5,3,4,23})
+
 	},
 	rocks = {
-		{11,0}
+		{0,1},
+		{18,24},
+		{22,12},
+		{16,7},
+		{17,7}
 	}
 }
 
@@ -665,7 +705,7 @@ function init_rooms_array()
 		add(rooms, room:new())
 	end
 
-	rooms[1]:init(2,2,4,3,false,true)
+	rooms[1]:init(2,2,4,3)
 	rooms[2]:init(7,2,4,3)
 	rooms[3]:init(12,2,3,5)
 	rooms[3]:init(12,2,3,5)
@@ -680,7 +720,7 @@ function init_rooms_array()
 	rooms[12]:init(2,14,3,4)
 	rooms[13]:init(6,14,2,3)
 	rooms[14]:init(9,14,2,3)
-	rooms[15]:init(2,19,3,4)
+	rooms[15]:init(2,19,3,4, false, true)
 	rooms[16]:init(6,18,5,5)
 	rooms[17]:init(12,18,3,5)
 	rooms[18]:init(23,14,4,4)
