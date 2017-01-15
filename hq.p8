@@ -157,8 +157,6 @@ function player:update()
 		self:move()
 	elseif self.state == "move_or_action" then
 		self:do_move_or_action_menu()
-	elseif self.state == "action" then
-
 	elseif self.state == "attack_menu" then
 		self:do_attack_menu()
 	end
@@ -233,32 +231,47 @@ function player:do_move_or_action_menu()
 	if self.menu_selection > #move_or_action_menu then self.menu_selection = 1 end
 
 	if (btnp(5)) then
-		if self.menu_selection == 1 and self.move_used == false then --move			
-			if self.dice_rolled == false then
+		
+		if self.menu_selection == 1 then --move						
+			if self.move_used == true then				
+				gui:add_message("already moved this turn")			
+			elseif self.dice_rolled == false then
 				self.ml = player:rollmovementdice()
+				gui:add_message("player rolled: " .. self.ml)			
 			end
-			printh("player rolled: " .. self.ml)
-			self.state = "move"
-		elseif self.menu_selection == 2 and self.action_used == false then --attack			
-			--check if enemy is adjacent todo this shouldnt be called every frame
-			self.adjacent_enemies = self:get_adjacent_enemies()
-			if (#self.adjacent_enemies == 0) printh("no adjacent enemies")
-			if (#self.adjacent_enemies > 0) then
-				printh("adjacent enemies exist: " .. #self.adjacent_enemies)
-				for en in all(self.adjacent_enemies) do 
-					printh(en.name)
+			if self.ml > 0 then 			
+				self.state = "move"
+			end			
+		elseif self.menu_selection == 2 then --attack						
+			if self.action_used == false then
+				--check if enemy is adjacent todo this shouldnt be called every frame
+				self.adjacent_enemies = self:get_adjacent_enemies()
+				if (#self.adjacent_enemies == 0) gui:add_message("no enemies to attack")
+				if (#self.adjacent_enemies > 0) then
+					printh("adjacent enemies exist: " .. #self.adjacent_enemies)
+					for en in all(self.adjacent_enemies) do 
+						printh(en.name)
+					end
+					self.state = "attack_menu"
+					self.attack_selection = 1
 				end
-				self.state = "attack_menu"
-				self.attack_selection = 1
+			else
+				gui:add_message("action already performed")
 			end
 
+		elseif self.menu_selection == 3 then --search for traps			
+			gui:add_message("not implemented")
+		elseif self.menu_selection == 4 then --search for treasure
+			gui:add_message("not implemented")			
 		elseif self.menu_selection == 5 then --end turn
 			actor_index += 1
 			self.move_used = false
+			self.action_used = false
 			self.menu_selection = 1
 			self.attack_selection = nil
 			self.adjacent_enemies = nil
 			self.dice_rolled = false
+
 		end
 	end
 end
@@ -280,7 +293,11 @@ function player:do_attack_menu()
 		self.state = "move_or_action"
 	elseif (btnp(5)) then --x attack enemy
 		self:attack_enemy()
-		self.action_used = true
+		self.action_used = true		
+		if self.dice_rolled == true then
+			self.ml = 0
+			self.move_used = true
+		end
 		self.state = "move_or_action"
 	end		
 end
@@ -290,6 +307,7 @@ function player:attack_enemy()
 	local en = self.adjacent_enemies[self.attack_selection]
 	printh("attacking a " .. en.name .. " who has " .. en.bp .. " body points")
 	do_actor_attack(self, en)
+
 end
 
 --this could be simplified
