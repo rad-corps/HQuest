@@ -1,9 +1,6 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
-
---trivial change to test git on different laptop
-
 actors={}
 actor_index=1
 player = {}
@@ -49,25 +46,15 @@ mission = {
 		{9,19,4},
 		{10,20,4},
 		{13,19,1},
-		{13,21,1}, --todo enemy type (D) room
+		{13,21,1}, 
 		{16,24,4},
-		{20,21,4}, --todo enemy type (knight)
-		{21,20,4}, --todo enemy type (knight)
+		{20,21,4}, 
+		{21,20,4}, 
 		{22,19,3},
-		{15,14,3}, --todo enemy type (knight)
-		{18,14,3}, --todo enemy type (knight)
+		{15,14,3}, 
+		{18,14,3}, 
 		{18,11,3},
 		{16,11,8}
-
-	-- add(enemy_type, {"goblin",10,2,1,1,1, 16})
-	-- add(enemy_type, {"skeleton",6,2,2,1,0, 17})
-	-- add(enemy_type, {"zombie",5,2,3,1,0,18})
-	-- add(enemy_type, {"orc",8,3,2,1,2,19})
-	-- add(enemy_type, {"fimir",6,3,3,2,3,20})
-	-- add(enemy_type, {"mummy",4,3,4,2,0,21})
-	-- add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
-	-- add(enemy_type, {"gargoyle",6,4,5,3,4,23})
-
 	},
 	rocks = {
 		{0,1},
