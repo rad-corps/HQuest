@@ -1,5 +1,5 @@
 pico-8 cartridge // http://www.pico-8.com
-version 10
+version 8
 __lua__
 actors={}
 actor_index=1
@@ -25,8 +25,13 @@ mission = {
 		{18,9}
 	},
 	enemies = { --x, y, type
-		{10,2,1},
-		{10,4,2}
+		{9,2,1},
+		{10,4,2},
+		{16,0,1},
+		{10,0,1},
+	},
+	rocks = {
+		{11,0}
 	}
 }
 
@@ -71,10 +76,14 @@ function gui:draw()
 	if #self.messages > 0 then
 		print(self.messages[1][1] .. "\x97", 10, 120, 7)		
 
-	elseif actor_index == 1 then --draw player GUI
+	elseif actor_index == 1 then --draw player gui
 				
-		if actors[1].state == "move" then				
-			print("       moves left " .. actors[1].ml, 10, 120, 7)		
+		if actors[1].state == "move" then	
+			if actors[1].ml == actors[1].dice then
+				print("       you rolled " .. actors[1].dice, 10, 120, 7)					
+			else
+				print("       moves left " .. actors[1].ml, 10, 120, 7)		
+			end
 		elseif actors[1].state == "move_or_action" then
 				print("\x8b" .. move_or_action_menu[actors[1].menu_selection] .. "\x91", 15, 120, 7)			
 		elseif actors[1].state == "attack_menu" then			
@@ -83,7 +92,6 @@ function gui:draw()
 			local en = actors[1].adjacent_enemies[actors[1].attack_selection]			
 			restore_camera()
 			rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, self.animator)
-
 		end
 	end
 
@@ -187,24 +195,37 @@ function player:move()
 	if (btnp(1)) self.x += 1
 	if (btnp(2)) self.y -= 1
 	if (btnp(3)) self.y += 1
-	if (btnp(4)) printh("button 4 pressed")
+	if (btnp(4)) printh("button 4 pressed")		
 	if (btnp(5)) then 
 		self.state = "move_or_action"
 		do return end
 	end
  
- 	--check collision with walls
-	if ( mget(self.x, self.y) == wallid )	then
+ 	--check collision with walls and rocks
+	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50)	then
 		self.x = prevx
 		self.y = prevy
 	end
 
+	--check collision with doors
+	if ( mget(self.x, self.y) == 48 )	then
+		mset(self.x, self.y, 49)
+	end
+
 	--check collision with enemies
 	for i=2, #actors do
-		if self.x == actors[i].x and self.y == actors[i].y then
-			self.x = prevx
-			self.y = prevy
+		if actors[i].alive == true then
+			if self.x == actors[i].x and self.y == actors[i].y then
+				self.x = prevx
+				self.y = prevy
+			end
 		end
+	end
+
+	--check collision with map edge
+	if self.x < 0 or self.x >= map_w or self. y < 0 or self.y >= map_h then
+		self.x = prevx
+		self.y = prevy
 	end
  
 	 --decrement movesleft if player moved
@@ -220,8 +241,6 @@ function player:move()
 		self.state = "move_or_action"
 
 	end
-
-	--printh("player pos:" .. self.x .. " " .. self.y) 
 end
 
 function player:do_move_or_action_menu()
@@ -237,7 +256,8 @@ function player:do_move_or_action_menu()
 				gui:add_message("already moved this turn")			
 			elseif self.dice_rolled == false then
 				self.ml = player:rollmovementdice()
-				gui:add_message("player rolled: " .. self.ml)			
+				self.dice = self.ml
+				--gui:add_message("player rolled: " .. self.ml)			
 			end
 			if self.ml > 0 then 			
 				self.state = "move"
@@ -248,7 +268,6 @@ function player:do_move_or_action_menu()
 				self.adjacent_enemies = self:get_adjacent_enemies()
 				if (#self.adjacent_enemies == 0) gui:add_message("no enemies to attack")
 				if (#self.adjacent_enemies > 0) then
-					printh("adjacent enemies exist: " .. #self.adjacent_enemies)
 					for en in all(self.adjacent_enemies) do 
 						printh(en.name)
 					end
@@ -263,7 +282,9 @@ function player:do_move_or_action_menu()
 			gui:add_message("not implemented")
 		elseif self.menu_selection == 4 then --search for treasure
 			gui:add_message("not implemented")			
-		elseif self.menu_selection == 5 then --end turn
+		elseif self.menu_selection == 5 then --use item
+			gui:add_message("not implemented")						
+		elseif self.menu_selection == 6 then --end turn
 			actor_index += 1
 			self.move_used = false
 			self.action_used = false
@@ -277,7 +298,7 @@ function player:do_move_or_action_menu()
 end
 
 function player:do_attack_menu()
-	if (btnp(0)) then --Left arrow (change selected enemy to attack)
+	if (btnp(0)) then --left arrow (change selected enemy to attack)
 		self.attack_selection -= 1
 		if self.attack_selection == 0 then
 			self.attack_selection = #self.adjacent_enemies
@@ -295,6 +316,7 @@ function player:do_attack_menu()
 		self:attack_enemy()
 		self.action_used = true		
 		if self.dice_rolled == true then
+			printh("move used = true")
 			self.ml = 0
 			self.move_used = true
 		end
@@ -305,7 +327,6 @@ end
 function player:attack_enemy()
 	--get the enemy
 	local en = self.adjacent_enemies[self.attack_selection]
-	printh("attacking a " .. en.name .. " who has " .. en.bp .. " body points")
 	do_actor_attack(self, en)
 
 end
@@ -317,9 +338,7 @@ function player:get_adjacent_enemies()
 	local neighbour_tiles = getneighbours({self.x, self.y})
 
 	for neighbour in all (neighbour_tiles) do
-		printh("neighbour tile: " .. neighbour[1] .. " " .. neighbour[2] .. " ".. neighbour[3] .. " ")
 		if neighbour[3] > 5 then --this is the traversal cost. cost of 6 is an enemy
-			printh("adding tile")
 			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
 		end
 	end
@@ -340,7 +359,7 @@ function enemy:init(en)
 	self.y = en[2]
 	self.type = en[3]
 	self.active = false
-	self.alive = true
+	self.alive = true	
 
 	--get enemy data
 	local ed = enemy_type[self.type]
@@ -368,7 +387,6 @@ end
 function enemy:update()
 	
 	if (self.active == false) then 
-		printh("enemy inactive")
 		self:finishmove()
 		do return end
 	end
@@ -390,7 +408,7 @@ function enemy:update()
 	
 			self.ml -= 1
 			
-			--we rached the end of the A star path, we are probably next to the player, lets check to be sure		
+			--we rached the end of the a star path, we are probably next to the player, lets check to be sure		
 			if self.pathindex > #self.path  then				
 				self.ml = 0
 				local neighbours = getneighbours({self.x, self.y})
@@ -415,7 +433,7 @@ function enemy:update()
 				--if we landed on another enemy, move back and pass control to next enemy
 				for i=2, #actors do
 					if i != actor_index then
-						if self.x == actors[i].x and self.y == actors[i].y then
+						if self.x == actors[i].x and self.y == actors[i].y and actors[i].alive then
 							self.x = prevx
 							self.y = prevy
 							enemy:finishmove()
@@ -449,7 +467,7 @@ end
 
 function enemy:draw()
 	if self.active == true then 
-		spr(16, self.x * 8, self.y * 8)
+		spr(self.sprite, self.x * 8, self.y * 8)
 	end
 end
 
@@ -463,7 +481,8 @@ function _init()
 	move_or_action_menu[2] = "        attack       "	
 	move_or_action_menu[3] = "  search for traps   "
 	move_or_action_menu[4] = " search for treasure "
-	move_or_action_menu[5] = "     finish turn     "
+	move_or_action_menu[5] = "       use item      "
+	move_or_action_menu[6] = "     finish turn     "
 
 	init_rooms_array()
 	my_gui = gui:new()
@@ -474,13 +493,13 @@ function _init()
 	enemy_type = {}
 
 	add(enemy_type, {"goblin",10,2,1,1,1, 16})
-	add(enemy_type, {"skeleton",6,2,2,1,0, 16})
-	add(enemy_type, {"zombie",5,2,3,1,0,16})
-	add(enemy_type, {"orc",8,3,2,1,2,16})
-	add(enemy_type, {"fimir",6,3,3,2,3,16})
-	add(enemy_type, {"mummy",4,3,4,2,0,16})
-	add(enemy_type, {"chaos warrior",7,4,4,3,3,16})
-	add(enemy_type, {"gargoyle",6,4,5,3,4,16})
+	add(enemy_type, {"skeleton",6,2,2,1,0, 17})
+	add(enemy_type, {"zombie",5,2,3,1,0,18})
+	add(enemy_type, {"orc",8,3,2,1,2,19})
+	add(enemy_type, {"fimir",6,3,3,2,3,20})
+	add(enemy_type, {"mummy",4,3,4,2,0,21})
+	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
+	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
 
 	init_mission()
 end
@@ -567,7 +586,7 @@ function do_actor_attack(attacker, defender)
 		gui:add_message(attacker.name .. " misses")
 	end
 
-end
+end 
 
 function init_mission()
 	for dl in all (mission.door_locations) do
@@ -580,16 +599,19 @@ function init_mission()
 	--add the enemies
 	for en in all(mission.enemies) do
 		--create a new enemy based on the enemy data
-		
-		printh("creating enemy: " .. en[1] .. ", " .. en[2])
 		local enemy = enemy:new()
 		enemy:init(en)
 		add(actors, enemy)
 	end	
+
+	--add the rocks
+	for rk in all(mission.rocks) do
+		--create a new enemy based on the enemy data
+		mset(rk[1], rk[2],50)
+	end		
 end
 
 function reveal_rooms(x,y)
-	printh("reveal rooms: " .. x .. ", " .. y)
 
 	for rm in all(rooms) do
 		--check player collision with room
@@ -789,30 +811,6 @@ function heuristic(a, b)
  return abs(a[1] - b[1]) + abs(a[2] - b[2])
 end
 
-function addneighbourtileif(neighbours, x, y)
-	local obstructed = true
-
-	if x >= 0 and x < map_w and y >= 0 and y < map_h then
-		if mget(x, y) > wallid 	then				
-			obstructed = false						
-			--iterate through actor_list 			
-			for i=2, #actors do
-				if i != actor_index then
-					if x == actors[i].x and y == actors[i].y then
-						obstructed = true
-						add(neighbours,{x,y,6})
-						return
-					end
-				end
-			end
-		end
-	end
-
-	if ( obstructed == false) then
-		add(neighbours,{x,y,1})
-	end
-end
-
 -- find all existing neighbours of a position that are not walls
 function getneighbours(pos)
 	local neighbours={}
@@ -829,6 +827,30 @@ function getneighbours(pos)
 		reverse(neighbours)
 	end
 	return neighbours
+end
+
+function addneighbourtileif(neighbours, x, y)
+	local obstructed = true
+
+	if x >= 0 and x < map_w and y >= 0 and y < map_h then
+		if mget(x, y) > wallid 	then				
+			obstructed = false						
+			--iterate through actor_list 			
+			for i=2, #actors do
+				if i != actor_index then
+					if x == actors[i].x and y == actors[i].y and actors[i].alive == true then
+						obstructed = true
+						add(neighbours,{x,y,6})
+						return
+					end
+				end
+			end
+		end
+	end
+
+	if ( obstructed == false) then
+		add(neighbours,{x,y,1})
+	end
 end
 
 -- find the first location of a specific tile type
@@ -881,30 +903,30 @@ bb111bbbbb111bbbbb111bbbbb111bbb000000000000000000000000000000000000000000000000
 bb1bbbbbbb1bbbbbbb1bbbbbbb1bbbbb000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 bb1bbb1bbb1b1b1bbb11b1b1bb11b1b1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 bbbbbb1bbbbb1b1bbbb1b1b1bbb1bb1b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88888888888888888888888888888888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88111188881111888811118888111188000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88188888881888888818888888188888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88111888881118888811188888111888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88188888881888888818888888188888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88188888881888888818888888188888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88111188881111888811118888111188000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-88888888888888888888888888888888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000006565656564646465686868656c6c6c656d6d6d65616161656f6f6f656e6e6e6563636365000000000000000000000000000000000000000000000000
-00000000555555564444444688888886ccccccc6ddddddd611111116fffffff6eeeeeee633333336000000000000000000000000000000000000000000000000
-000000006555555564444444688888886ccccccc6ddddddd611111116fffffff6eeeeeee63333333000000000000000000000000000000000000000000000000
-00000000555556564444464688888686ccccc6c6ddddd6d611111616fffff6f6eeeee6e633333636000000000000000000000000000000000000000000000000
-000000006556556564464465688688656cc6cc656dd6dd65611611656ff6ff656ee6ee6563363365000000000000000000000000000000000000000000000000
-00000000555565564444644688886886cccc6cc6dddd6dd611116116ffff6ff6eeee6ee633336336000000000000000000000000000000000000000000000000
-000000006555556564444465688888656ccccc656ddddd65611111656fffff656eeeee6563333365000000000000000000000000000000000000000000000000
-0000000056565656564646565686865656c6c65656d6d6565616165656f6f65656e6e65656363656000000000000000000000000000000000000000000000000
-00054000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00544400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-05444440000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-54444444000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-54444444000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-54444564000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-54444444000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-54444444000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+88888888888888888888888888888888888888888888888888888888888888880000000000000000000000000000000000000000000000000000000000000000
+88111118811111188111111881111118881111188188881881111118811111180000000000000000000000000000000000000000000000000000000000000000
+88188888818888888888881881888818881888888118811881888888818888880000000000000000000000000000000000000000000000000000000000000000
+88188118811111188811118881888818881888888181181881888888818888880000000000000000000000000000000000000000000000000000000000000000
+88188818888888188188888881888818881118888188881881888888818811180000000000000000000000000000000000000000000000000000000000000000
+88111118811111188111111881888818881888888188881881888888818888180000000000000000000000000000000000000000000000000000000000000000
+88888888888888888888888881111118881888888188881881111118811111180000000000000000000000000000000000000000000000000000000000000000
+88888888888888888888888888888888888888888888888888888888888888880000000000000000000000000000000000000000000000000000000000000000
+225555226565656564646465686868656c6c6c656d6d6d65616161656f6f6f656e6e6e6563636365000000000000000000000000000000000000000000000000
+21111112555555564444444688888886ccccccc6ddddddd611111116fffffff6eeeeeee633333336000000000000000000000000000000000000000000000000
+511111156555555564444444688888886ccccccc6ddddddd611111116fffffff6eeeeeee63333333000000000000000000000000000000000000000000000000
+51111115555556564444464688888686ccccc6c6ddddd6d611111616fffff6f6eeeee6e633333636000000000000000000000000000000000000000000000000
+511111156556556564464465688688656cc6cc656dd6dd65611611656ff6ff656ee6ee6563363365000000000000000000000000000000000000000000000000
+51111115555565564444644688886886cccc6cc6dddd6dd611116116ffff6ff6eeee6ee633336336000000000000000000000000000000000000000000000000
+211111126555556564444465688888656ccccc656ddddd65611111656fffff656eeeee6563333365000000000000000000000000000000000000000000000000
+2255552256565656564646565686865656c6c65656d6d6565616165656f6f65656e6e65656363656000000000000000000000000000000000000000000000000
+00054000054000005115511500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00544400054000005611661500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+05444440544400006161166500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+54444444544400001111661500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+54444444544400005161611100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+54444564545600006161161100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+54444444544400005616116600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+54444444544400005665565500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
