@@ -1,6 +1,8 @@
 pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
+
+chests={}
 actors={}
 actor_index=1
 player = {}
@@ -62,6 +64,9 @@ mission = {
 		{22,12},
 		{16,7},
 		{17,7}
+	},
+	chest_data = { --x,y,type,amount/strength
+		{2, 22, 1, 20}
 	}
 }
 
@@ -128,6 +133,33 @@ function gui:draw()
 	restore_camera()
 end
 
+chest = {}
+
+--chest class
+function chest:new(o)
+	o = o or {}   -- create object if user does not provide one
+	setmetatable(o, self)
+	self.__index = self
+	return o
+end
+
+function chest:init(x, y, chest_type, amount)
+	self.x = x
+	self.y = y
+	self.chest_type = chest_type 
+	self.amount = amount
+	self.opened = false
+end
+
+function chest:draw()
+	local sprite = 51
+	if self.opened == true then
+		sprite = 52
+	end
+	spr(sprite, self.x * 8, self.y * 8)
+end
+--room class
+
 function room:new(o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
@@ -187,6 +219,7 @@ function player:new (o)
 	self.sprite = 0
 	self.human = true
 	self.alive = true
+	self.g = 0
 	return o
 end
 
@@ -558,6 +591,11 @@ function _draw()
 		v:draw()
 	end
 
+		--draw all actors
+	for ch in all(chests) do
+		ch:draw()
+	end
+
 	my_gui:draw()	
 end
 
@@ -638,7 +676,15 @@ function init_mission()
 	for rk in all(mission.rocks) do
 		--create a new enemy based on the enemy data
 		mset(rk[1], rk[2],50)
-	end		
+	end	
+
+	--initialise chests
+	for ch in all (mission.chest_data) do
+		local l_chest = chest:new()
+		l_chest:init(ch[1], ch[2], ch[3], ch[4])
+		add(chests, l_chest)
+	end	
+
 end
 
 function reveal_rooms(x,y)
