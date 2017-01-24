@@ -1,0 +1,97 @@
+Enemies
+-----------------------------------------
+	Arg list:
+		1 - Name
+		2 - Movement Squares
+		3 - Attack Points (num dice for attack)
+		4 - Defence Points (num dice for defence)
+		5 - Body Points 
+		6 - Mind Points
+		7 - Sprite Num
+
+	Types:
+		add(enemy_type, {"goblin",10,2,1,1,1, 16})
+		add(enemy_type, {"skeleton",6,2,2,1,0, 17})
+		add(enemy_type, {"zombie",5,2,3,1,0,18})
+		add(enemy_type, {"orc",8,3,2,1,2,19})
+		add(enemy_type, {"fimir",6,3,3,2,3,20})
+		add(enemy_type, {"mummy",4,3,4,2,0,21})
+		add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
+		add(enemy_type, {"gargoyle",6,4,5,3,4,23})
+
+chest_data
+----------------------------------------------
+	Arg List:
+		1 - x (cell, not pixel)
+		2 - y (cell, not pixel)
+		3 - type
+			1 - gold
+			2 - potion 
+		4 - strength
+
+chest properties
+-------------------------
+	x
+	y
+	chest_type (number)
+	amount (number)
+	opened (bool)
+
+player properties
+-------------------------
+	int		x
+	int		y
+	int		ml
+	int		menu_selection
+	int		item_selection
+	string	state
+				"move_or_action"
+				"move"
+				"attack_menu"
+				"player_stats"
+				"select_item"
+	bool	move_used
+	bool	action_used
+	bool 	dice_rolled
+	string	name
+	int		ap
+	int 	dp
+	int 	max_bp
+	int 	bp
+	int 	mp
+	int 	sprite
+	bool 	human (always true for player)
+	bool	alive
+	int		g
+	table 	items
+				1 - heal potion
+
+move_or_action_menu
+-------------------
+	move_or_action_menu[1] = "         move        "
+	move_or_action_menu[2] = "        attack       "	
+	move_or_action_menu[3] = "  search for traps   "
+	move_or_action_menu[4] = " search for treasure "
+	move_or_action_menu[5] = "       use item      "
+	move_or_action_menu[6] = "     player stats    "
+	move_or_action_menu[7] = "     finish turn     "
+
+
+chests have multiple items/effects
+carrying chests (only one movement die)
+healing potions have different strengths
+hidden doors can be revealed by items
+show quest instructions at start of quest
+
+4129
+
+events
+------
+text for starting a mission
+text for fulfilling an objective 
+ - finding treasure
+ - killing an enemy
+text for trying to exit before objective is complete
+text for exiting after objective complete
+on entering a room
+on killing an enemy

@@ -2,73 +2,52 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 
-chests={}
-actors={}
-actor_index=1
-player = {}
-enemy={ml=7,x=0,y=0}
-room={}
-rooms={}
-timer=0
-map_w=34
-map_h=25
-move_or_action_menu = {}
-cam_cache = {0,0}
-mission = {
-	starting_point = {2,20},
-	door_locations = {
-		{4,5},
-		{6,3},
-		{11,3},
-		{4,11},
-		{9,11},
-		{1,15},
-		{13,17},
-		{11,20},
-		{3,23},
-		{8,23},
-		{18,20},
-		{20,12}
-	},
-	enemies = { --x, y, type
-		{3,3,2},
-		{4,3,2},
-		{8,2,3},
-		{8,3,6},
-		{8,4,3},
-		{12,4,2},
-		{12,5,6},
-		{13,5,2},
-		{4,8,1},
-		{8,9,1},
-		{9,9,1},
-		{0,17,1},
-		{3,15,1},
-		{3,16,4},
-		{9,19,4},
-		{10,20,4},
-		{13,19,1},
-		{13,21,1}, 
-		{16,24,4},
-		{20,21,4}, 
-		{21,20,4}, 
-		{22,19,3},
-		{15,14,3}, 
-		{18,14,3}, 
-		{18,11,3},
-		{16,11,8}
-	},
-	rocks = {
-		{0,1},
-		{18,24},
-		{22,12},
-		{16,7},
-		{17,7}
-	},
-	chest_data = { --x,y,type,amount/strength
-		{2, 22, 1, 20}
-	}
-}
+function _init()
+	--state = "move_or_action"
+	wallid = 32
+	actor_index=1
+	map_w=34
+	map_h=25
+	textanimcolour = 5
+	mission_num = 1
+	cam_cache = {0,0}
+
+	move_or_action_menu = {}
+	move_or_action_menu[1] = "         move        "
+	move_or_action_menu[2] = "        attack       "	
+	move_or_action_menu[3] = "  search for traps   "
+	move_or_action_menu[4] = " search for treasure "
+	move_or_action_menu[5] = "       use item      "
+	move_or_action_menu[6] = "     player stats    "
+	move_or_action_menu[7] = "     finish turn     "
+
+	rooms={}
+	init_rooms_array()
+
+	my_gui = gui:new()
+	
+	--init players and enemies
+	actors={}
+	actors[1] = player:new()
+
+	enemy_type = {}
+ 
+	--name, hp, ap
+	add(enemy_type, {"goblin",10,2,1,1,1, 16})
+	add(enemy_type, {"skeleton",6,2,2,1,0, 17})
+	add(enemy_type, {"zombie",5,2,3,1,0,18})
+	add(enemy_type, {"orc",8,3,2,1,2,19})
+	add(enemy_type, {"fimir",6,3,3,2,3,20})
+	add(enemy_type, {"mummy",4,3,4,2,0,21})
+	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
+	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
+
+	chests={}
+	
+	timer=0
+
+	init_mission(mission_num)
+end
 
 gui = {}
 
@@ -104,6 +83,36 @@ end
 function gui:draw()
 	camera()
 	rectfill(0,117,128,128, 4)
+	local p = actors[1]
+
+	if p.state == "player_stats" then
+		rectfill(0,0,128,128, 4)
+		print("name: " .. p.name, 10, 10, 7)
+		print("att: " .. p.ap, 10, 20, 7)
+		print("def: " .. p.dp, 50, 20, 7)
+		print("body: " .. p.bp, 90, 20, 7)
+		print("mind: " .. p.mp, 10, 30, 7)
+		print("gold: " .. p.g, 50, 30, 7)
+		print("items:", 10, 40, 7)
+		local y_offset = 50
+		for it in all(p.items) do
+			print(item_num_to_string(it), 10, y_offset, 7)
+			y_offset += 10
+		end
+	elseif p.state == "select_item" then
+		rectfill(0,0,128,128, 4)
+		print("items:", 10, 40, 7)
+		local y_offset = 50
+		
+		for num=1, #p.items do
+			if p.item_selection == num then 
+				print("*" .. item_num_to_string(p.items[num]) .. "*", 10, y_offset, 7)
+			else
+				print(item_num_to_string(p.items[num]), 10, y_offset, 7)
+			end
+			y_offset += 10
+		end
+	end
 
 	self.animator += 1
 	if self.animator > 7 then self.animator = 5 end
@@ -114,11 +123,7 @@ function gui:draw()
 	elseif actor_index == 1 then --draw player gui
 				
 		if actors[1].state == "move" then	
-			if actors[1].ml == actors[1].dice then
-				print("       you rolled " .. actors[1].dice, 10, 120, 7)					
-			else
-				print("       moves left " .. actors[1].ml, 10, 120, 7)		
-			end
+			print("       moves left " .. actors[1].ml, 10, 120, 7)		
 		elseif actors[1].state == "move_or_action" then
 				print("\x8b" .. move_or_action_menu[actors[1].menu_selection] .. "\x91", 15, 120, 7)			
 		elseif actors[1].state == "attack_menu" then			
@@ -133,9 +138,9 @@ function gui:draw()
 	restore_camera()
 end
 
+--chest class
 chest = {}
 
---chest class
 function chest:new(o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
@@ -158,7 +163,9 @@ function chest:draw()
 	end
 	spr(sprite, self.x * 8, self.y * 8)
 end
+
 --room class
+room={}
 
 function room:new(o)
 	o = o or {}   -- create object if user does not provide one
@@ -196,6 +203,8 @@ function room:draw()
 	end
 end
 
+player = {}
+
 --player methods
 function player:new (o)
 	o = o or {}   -- create object if user does not provide one
@@ -205,6 +214,7 @@ function player:new (o)
 	self.x = 0
 	self.y = 0
 	self.menu_selection = 1
+	self.item_selection = 1
 	self.state = "move_or_action"
 	self.move_used = false
 	self.action_used = false
@@ -214,22 +224,57 @@ function player:new (o)
 	--self.ms = ed[2]
 	self.ap = 3
 	self.dp = 2
-	self.bp = 8
+	self.max_bp = 8
+	self.bp = self.max_bp
 	self.mp = 3
 	self.sprite = 0
 	self.human = true
 	self.alive = true
 	self.g = 0
+	self.items = {}
 	return o
 end
 
 function player:update()
+	
+	--user should be able to bail from any state into main menu
+	if (btnp(4)) then
+		if self.state == "move_or_action" then 
+			self.state = "move"
+		elseif self.state != "move_or_action" then 
+			self.state = "move_or_action"
+		end
+	end
+
 	if self.state == "move" then
 		self:move()
 	elseif self.state == "move_or_action" then
 		self:do_move_or_action_menu()
 	elseif self.state == "attack_menu" then
 		self:do_attack_menu()
+	elseif self.state == "select_item" then	
+		self:do_item_menu()
+	end
+end
+
+function player:do_item_menu()
+	if (btnp(2)) self.item_selection -= 1
+	if (btnp(3)) self.item_selection += 1
+	if (self.item_selection < 1) self.item_selection = #self.items
+	if (self.item_selection > #self.items) self.item_selection = 1
+	if (btnp(5)) then
+		--get item type
+		--todo bounds checking
+		local item = self.items[self.item_selection]
+		if item == 1 then -- potion
+			local old_bp = self.bp			
+			self.bp += 4
+			if(self.bp > self.max_bp) self.bp = self.max_bp
+			gui:add_message("used potion of heal")
+			gui:add_message(self.bp - old_bp .. " body restored" )
+		end
+		self.state = "move_or_action"
+		del(self.items, self.items[self.item_selection])
 	end
 end
 
@@ -239,33 +284,79 @@ function player:rollmovementdice()
 end
 
 function player:draw()
-	--centre camera 
-	if actor_index == 1 then
-		set_camera(self.x * 8 - 64, self.y * 8 - 64)
-	end
+	if self.state != "player_stats" and self.state != "select_item" then
+		--centre camera 
+		if actor_index == 1 then
+			set_camera(self.x * 8 - 64, self.y * 8 - 64)
+		end
 
-	spr(0,self.x * 8, self.y * 8)
+		spr(0,self.x * 8, self.y * 8)
 
-	if actor_index == 1 then
-		restore_camera()	
+		if actor_index == 1 then
+			restore_camera()	
+		end
 	end
 end
 
 function player:move()
-	local prevx = self.x
-	local prevy = self.y
-	if (btnp(0)) self.x -= 1
-	if (btnp(1)) self.x += 1
-	if (btnp(2)) self.y -= 1
-	if (btnp(3)) self.y += 1
-	if (btnp(4)) printh("button 4 pressed")		
-	if (btnp(5)) then 
-		self.state = "move_or_action"
+
+	if self.dice_rolled == false then
+		self.ml = player:rollmovementdice()
+		self.dice = self.ml
+		gui:add_message("player rolled: " .. self.ml)	
+		self.dice_rolled = true		
 		do return end
 	end
+
+	local prevx = self.x
+	local prevy = self.y
+	if self.ml > 0 then 
+		if (btnp(0)) self.x -= 1
+		if (btnp(1)) self.x += 1
+		if (btnp(2)) self.y -= 1
+		if (btnp(3)) self.y += 1	
+	end
+	if (btnp(5)) then 
+		local ch_opened = false --check for enemies if no chest was opened
+		do
+			local ch = chest_at_surrounding_location(self.x, self.y)
+			if ( ch != nil and ch.opened == false) then 		
+				if ch.chest_type == 1 then --gold
+					--display what is in it through the gui
+					gui:add_message("you found " .. ch.amount .. " gold")
+
+					--add the contents to the player's inventory	
+					self.g += ch.amount
+				elseif ch.chest_type == 2 then --item (ch.amount gives us the type)
+					--
+					gui:add_message("you found " .. item_num_to_string(ch.amount))
+
+					add(self.items, ch.amount)
+
+				end
+				
+				--open the chest sprite
+				ch.opened = true
+				ch_opened = true
+			end
+		end
+
+		if ch_opened == false and self.action_used ==false then --check surrounding squares for enemies
+			self.adjacent_enemies = self:get_adjacent_enemies()
+			if #self.adjacent_enemies > 0 then 
+				for en in all(self.adjacent_enemies) do 
+						printh(en.name)
+				end
+				self.state = "attack_menu"
+				self.attack_selection = 1
+			end
+		end
+	end
+		
+
  
- 	--check collision with walls and rocks
-	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50)	then
+ 	--check collision with walls, rocks and chests
+	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or chest_at_location(self.x, self.y) != nil)	then
 		self.x = prevx
 		self.y = prevy
 	end
@@ -300,8 +391,8 @@ function player:move()
 	--next actor if we run out of moves
 	if self.ml <= 0 then 
 		--actor_index += 1 
-		self.move_used = true
-		self.state = "move_or_action"
+		--self.move_used = true
+		--self.state = "move_or_action"
 
 	end
 end
@@ -315,16 +406,7 @@ function player:do_move_or_action_menu()
 	if (btnp(5)) then
 		
 		if self.menu_selection == 1 then --move						
-			if self.move_used == true then				
-				gui:add_message("already moved this turn")			
-			elseif self.dice_rolled == false then
-				self.ml = player:rollmovementdice()
-				self.dice = self.ml
-				--gui:add_message("player rolled: " .. self.ml)			
-			end
-			if self.ml > 0 then 			
-				self.state = "move"
-			end			
+			self.state = "move"
 		elseif self.menu_selection == 2 then --attack						
 			if self.action_used == false then
 				--check if enemy is adjacent todo this shouldnt be called every frame
@@ -346,8 +428,11 @@ function player:do_move_or_action_menu()
 		elseif self.menu_selection == 4 then --search for treasure
 			gui:add_message("not implemented")			
 		elseif self.menu_selection == 5 then --use item
-			gui:add_message("not implemented")						
-		elseif self.menu_selection == 6 then --end turn
+			self.state = "select_item"	
+		elseif self.menu_selection == 6 then --player stats
+			self.state = "player_stats"	
+
+		elseif self.menu_selection == 7 then --end turn
 			actor_index += 1
 			self.move_used = false
 			self.action_used = false
@@ -409,6 +494,8 @@ function player:get_adjacent_enemies()
 	return ret
 end
 
+enemy={}
+
 --enemy functions
 function enemy:new(o)
 	o = o or {}
@@ -429,6 +516,7 @@ function enemy:init(en)
 
 	self.name = ed[1]
 	self.ms = ed[2]
+	self.ml = self.ms
 	self.ap = ed[3]
 	self.dp = ed[4]
 	self.bp = ed[5]
@@ -535,37 +623,7 @@ function enemy:draw()
 end
 
 --pico 8 functions
-function _init()
-	--state = "move_or_action"
-	wallid = 32
-	textanimcolour = 5
 
-	move_or_action_menu[1] = "         move        "
-	move_or_action_menu[2] = "        attack       "	
-	move_or_action_menu[3] = "  search for traps   "
-	move_or_action_menu[4] = " search for treasure "
-	move_or_action_menu[5] = "       use item      "
-	move_or_action_menu[6] = "     finish turn     "
-
-	init_rooms_array()
-	my_gui = gui:new()
-	
-	--init players and enemies
-	actors[1] = player:new()
-
-	enemy_type = {}
-
-	add(enemy_type, {"goblin",10,2,1,1,1, 16})
-	add(enemy_type, {"skeleton",6,2,2,1,0, 17})
-	add(enemy_type, {"zombie",5,2,3,1,0,18})
-	add(enemy_type, {"orc",8,3,2,1,2,19})
-	add(enemy_type, {"fimir",6,3,3,2,3,20})
-	add(enemy_type, {"mummy",4,3,4,2,0,21})
-	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
-	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
-
-	init_mission()
-end
 
 function _update()
 
@@ -600,6 +658,33 @@ function _draw()
 end
 
 --helper functions
+function item_num_to_string(item_num)
+	ret = item_num .. " not implemented"
+	if item_num == 1 then 
+		ret = "potion of healing"
+	end
+	return ret
+end
+
+function chest_at_surrounding_location(x,y)
+	local ret = nil
+	if ret == nil then ret = chest_at_location(x+1, y) end
+	if ret == nil then ret = chest_at_location(x-1, y) end
+	if ret == nil then ret = chest_at_location(x, y+1) end
+	if ret == nil then ret = chest_at_location(x, y-1) end
+	return ret
+end
+
+function chest_at_location(x,y)
+	local ret = nil
+	for ch in all(chests) do
+		if ch.x == x and ch.y == y then
+			ret = ch
+		end
+	end
+	return ret
+end
+
 function do_actor_attack(attacker, defender)
 	gui:add_message(attacker.name .. " attacks " .. defender.name)
 
@@ -622,6 +707,8 @@ function do_actor_attack(attacker, defender)
 	for i=1, attack_dice do	
 		local attack_die = flr(rnd(6))
 		
+		printh("attack_die: " .. attack_die)
+
 		if attack_die <= 2 then --attack die always has 3 sides
 			attack_hits += 1
 		end
@@ -656,7 +743,10 @@ function do_actor_attack(attacker, defender)
 
 end 
 
-function init_mission()
+function init_mission(num)
+
+	mission = get_mission(num)	
+
 	for dl in all (mission.door_locations) do
 		mset(dl[1], dl[2],48)
 	end	
@@ -684,7 +774,71 @@ function init_mission()
 		l_chest:init(ch[1], ch[2], ch[3], ch[4])
 		add(chests, l_chest)
 	end	
+end
 
+function get_mission(num)
+	local l_mission = {}
+	if num == 1 then 
+		l_mission = {
+			starting_point = {2,20},
+			door_locations = {
+				{4,5},
+				{6,3},
+				{11,3},
+				{4,11},
+				{9,11},
+				{1,15},
+				{13,17},
+				{11,20},
+				{3,23},
+				{8,23},
+				{18,20},
+				{20,12}
+			},
+			enemies = { --x, y, type
+				{3,3,2},
+				{4,3,2},
+				{8,2,3},
+				{8,3,6},
+				{8,4,3},
+				{12,4,2},
+				{12,5,6},
+				{13,5,2},
+				{4,8,1},
+				{8,9,1},
+				{9,9,1},
+				{0,17,1},
+				{3,15,1},
+				{3,16,4},
+				{9,19,4},
+				{10,20,4},
+				{13,19,1},
+				{13,21,1}, 
+				{16,24,4},
+				{20,21,4}, 
+				{21,20,4}, 
+				{22,19,3},
+				{15,14,3}, 
+				{18,14,3}, 
+				{18,11,3},
+				{16,11,8}
+			},
+			rocks = {
+				{0,1},
+				{18,24},
+				{22,12},
+				{16,7},
+				{17,7}
+			},
+			chest_data = { --x,y,type,amount/strength
+				{2, 22, 2, 1},
+				{4, 22, 2, 1},
+				{22, 22, 2, 1},
+				{21, 22, 2, 1}
+			}
+		}
+	end
+	return l_mission
 end
 
 function reveal_rooms(x,y)
@@ -765,9 +919,9 @@ function init_rooms_array()
 	rooms[21]:init(24,19,3,4)
 	rooms[22]:init(28,19,4,4)
 	rooms[23]:init(0,0,33,2,true)
-	rooms[24]:init(32,0,2,24,true)
+	rooms[24]:init(32,0,2,25,true)
 	rooms[25]:init(0,23,33,2,true)
-	rooms[26]:init(0,0,2,24,true)
+	rooms[26]:init(0,0,2,25,true)
 	rooms[27]:init(15,0,4,9,true)
 	rooms[28]:init(21,11,13,3,true)
 	rooms[29]:init(15,16,4,9,true)
@@ -1004,21 +1158,21 @@ bb2b2bb30777711708111188bbb3bbbb881888888181181881888888818888880000000000000000
 54444444544400005616116654544545545445450000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 54444444544400005665565555555555555555550000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000066666660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000066666660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000666006666660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000666006633330000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000066300333660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00060063300666660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00666006600066660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00663300660066330000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00063600633003360000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00006660036600660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+06600633006660660000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+06660036606630060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00666006660336000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+60066606336066000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+66006660366006600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
