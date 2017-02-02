@@ -330,9 +330,52 @@ function room:draw()
 	end
 end
 
+function init_rooms_array()
+	
+	for i=1,34 do
+		add(rooms, room:new())
+	end
+
+	rooms[1]:init(2,2,4,3)
+	rooms[2]:init(7,2,4,3)
+	rooms[3]:init(12,2,3,5)
+	rooms[3]:init(12,2,3,5)
+	rooms[4]:init(2,6,4,5)
+	rooms[5]:init(7,6,4,5)
+	rooms[6]:init(19,2,3,5)
+	rooms[7]:init(23,2,4,4)
+	rooms[8]:init(28,2,4,4)
+	rooms[9]:init(23,7,4,4)
+	rooms[10]:init(28,7,4,4)
+	rooms[11]:init(14,10,6,5)
+	rooms[12]:init(2,14,3,4)
+	rooms[13]:init(6,14,2,3)
+	rooms[14]:init(9,14,2,3)
+	rooms[15]:init(2,19,3,4, false, true)
+	rooms[16]:init(6,18,5,5)
+	rooms[17]:init(12,18,3,5)
+	rooms[18]:init(23,14,4,4)
+	rooms[19]:init(28,14,4,4)
+	rooms[20]:init(19,18,4,5)
+	rooms[21]:init(24,19,3,4)
+	rooms[22]:init(28,19,4,4)
+	rooms[23]:init(0,0,34,2,true)
+	rooms[24]:init(32,0,2,25,true)
+	rooms[25]:init(0,23,34,2,true)
+	rooms[26]:init(0,0,2,25,true)
+	rooms[27]:init(15,0,4,9,true)
+	rooms[28]:init(21,11,13,3,true)
+	rooms[29]:init(15,16,4,9,true)
+	rooms[30]:init(0,11,13,3,true)
+	rooms[31]:init(11,7,12,3,true)
+	rooms[32]:init(20,7,3,11,true)
+	rooms[33]:init(11,15,12,3,true)
+	rooms[34]:init(11,7,3,11,true)
+
+end
+
 --player class
 -------------------------
-
 player = {}
 
 --player methods
@@ -473,6 +516,10 @@ function player:move()
 				self.attack_selection = 1
 			end
 		end
+		if self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
+			self.state = "move_or_action"
+			self.menu_selection = 5
+		end
 	end
 		
  	--check collision with walls, rocks and chests
@@ -584,7 +631,6 @@ function player:attack_enemy()
 	--get the enemy
 	local en = self.adjacent_enemies[self.attack_selection]
 	do_actor_attack(self, en)
-
 end
 
 --this could be simplified
@@ -870,38 +916,38 @@ function get_mission(num)
 			},
 			enemies = { --x, y, type
 				{3,3,2},
-				{4,3,2},
-				{8,2,3},
-				{8,3,6},
-				{8,4,3},
-				{12,4,2},
-				{12,5,6},
-				{13,5,2},
-				{4,8,1},
-				{8,9,1},
-				{9,9,1},
-				{0,17,1},
-				{3,15,1},
-				{3,16,4},
-				{9,19,4},
-				{10,20,4},
-				{13,19,1},
-				{13,21,1}, 
-				{16,24,4},
-				{20,21,4}, 
-				{21,20,4}, 
-				{22,19,3},
-				{15,14,3}, 
-				{18,14,3}, 
-				{18,11,3},
-				{16,11,8}
+				-- {4,3,2},
+				-- {8,2,3},
+				-- {8,3,6},
+				-- {8,4,3},
+				-- {12,4,2},
+				-- {12,5,6},
+				-- {13,5,2},
+				-- {4,8,1},
+				-- {8,9,1},
+				-- {9,9,1},
+				-- {0,17,1},
+				-- {3,15,1},
+				-- {3,16,4},
+				-- {9,19,4},
+				-- {10,20,4},
+				-- {13,19,1},
+				-- {13,21,1}, 
+				-- {16,24,4},
+				-- {20,21,4}, 
+				-- {21,20,4}, 
+				-- {22,19,3},
+				-- {15,14,3}, 
+				-- {18,14,3}, 
+				-- {18,11,3},
+				-- {16,11,8}
 			},
 			rocks = {
-				{0,1},
-				{18,24},
-				{22,12},
-				{16,7},
-				{17,7}
+				-- {0,1},
+				-- {18,24},
+				-- {22,12},
+				-- {16,7},
+				-- {17,7}
 			},
 			chest_data = { --x,y,type,amount/strength
 				{2, 22, 2, 1},
@@ -960,50 +1006,6 @@ end
 
 function restore_camera()
 	camera(cam_cache[1], cam_cache[2])
-end
-
-function init_rooms_array()
-	
-	for i=1,34 do
-		add(rooms, room:new())
-	end
-
-	rooms[1]:init(2,2,4,3)
-	rooms[2]:init(7,2,4,3)
-	rooms[3]:init(12,2,3,5)
-	rooms[3]:init(12,2,3,5)
-	rooms[4]:init(2,6,4,5)
-	rooms[5]:init(7,6,4,5)
-	rooms[6]:init(19,2,3,5)
-	rooms[7]:init(23,2,4,4)
-	rooms[8]:init(28,2,4,4)
-	rooms[9]:init(23,7,4,4)
-	rooms[10]:init(28,7,4,4)
-	rooms[11]:init(14,10,6,5)
-	rooms[12]:init(2,14,3,4)
-	rooms[13]:init(6,14,2,3)
-	rooms[14]:init(9,14,2,3)
-	rooms[15]:init(2,19,3,4, false, true)
-	rooms[16]:init(6,18,5,5)
-	rooms[17]:init(12,18,3,5)
-	rooms[18]:init(23,14,4,4)
-	rooms[19]:init(28,14,4,4)
-	rooms[20]:init(19,18,4,5)
-	rooms[21]:init(24,19,3,4)
-	rooms[22]:init(28,19,4,4)
-	rooms[23]:init(0,0,33,2,true)
-	rooms[24]:init(32,0,2,25,true)
-	rooms[25]:init(0,23,33,2,true)
-	rooms[26]:init(0,0,2,25,true)
-	rooms[27]:init(15,0,4,9,true)
-	rooms[28]:init(21,11,13,3,true)
-	rooms[29]:init(15,16,4,9,true)
-	rooms[30]:init(0,11,13,3,true)
-	rooms[31]:init(11,7,12,3,true)
-	rooms[32]:init(20,7,3,11,true)
-	rooms[33]:init(11,15,12,3,true)
-	rooms[34]:init(11,7,3,11,true)
-
 end
 
 --astar specific
