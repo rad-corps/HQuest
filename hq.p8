@@ -2,91 +2,157 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 
+--pico 8 functions
+
 function _init()
-	--state = "move_or_action"
-	wallid = 32
-	actor_index=1
-	map_w=34
-	map_h=25
-	textanimcolour = 5
-	mission_num = 1
-	cam_cache = {0,0}
-
-	move_or_action_menu = {}
-	move_or_action_menu[1] = "         move        "
-	move_or_action_menu[2] = "        attack       "	
-	move_or_action_menu[3] = "  search for traps   "
-	move_or_action_menu[4] = " search for treasure "
-	move_or_action_menu[5] = "       use item      "
-	move_or_action_menu[6] = "     player stats    "
-	move_or_action_menu[7] = "     finish turn     "
-
-	rooms={}
-	init_rooms_array()
-
-	my_gui = gui:new()
-	
-	--init players and enemies
-	actors={}
-	actors[1] = player:new()
-
-	enemy_type = {}
- 
-	--name, hp, ap
-	add(enemy_type, {"goblin",10,2,1,1,1, 16})
-	add(enemy_type, {"skeleton",6,2,2,1,0, 17})
-	add(enemy_type, {"zombie",5,2,3,1,0,18})
-	add(enemy_type, {"orc",8,3,2,1,2,19})
-	add(enemy_type, {"fimir",6,3,3,2,3,20})
-	add(enemy_type, {"mummy",4,3,4,2,0,21})
-	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
-	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
-
-	chests={}
-	
-	timer=0
-
-	init_mission(mission_num)
+	app_state = main_menu_state
+	animator = 5
 end
 
-gui = {}
-
-function gui:new(o)
-	o = o or {}   -- create object if user does not provide one
-	setmetatable(o, self)
-	self.__index = self
-	self.animator = 5
-	self.messages = {}
-	return o
+function _update()
+	app_state:update()
 end
 
-function gui:add_message(msg, callback)
-	local gui_msg = {msg, callback}
-	add(self.messages, gui_msg)
+function _draw()
+	cls()
+
+	animator += 1
+	if (animator > 7) animator = 5
+
+	app_state:draw()
 end
 
-function gui:active_messages()
-	return #self.messages > 0
-end
+--app states
+------------------------------------------
+main_menu_state={
+	selection = 1,
 
-function gui:update()
-	if #self.messages > 0 then
-		if (btnp(5)) then 
-			if self.messages[1][2] != nil then
-				self.messages[1][2]()
+	update = function()
+		if ( btnp(2) ) then --up
+			main_menu_state.selection += 1
+		elseif ( btnp(3) ) then --down	
+			main_menu_state.selection -= 1
+		elseif btnp(5) then 
+			if (main_menu_state.selection == 1) then 
+				app_state = instructions
 			end
-			pop(self.messages)
+			if (main_menu_state.selection == 2) then 
+				app_state = character_select_state
+			end		
+		end	
+
+		if (main_menu_state.selection > 2) main_menu_state.selection = 1
+		if (main_menu_state.selection < 1) main_menu_state.selection = 2
+	end,
+
+	draw = function()
+		print("---------------------------------", 0, 10, 6)
+		print("---------------------------------", 0, 20)
+		print("-----------pico quest------------", 0, 30)
+		print("---------------------------------", 0, 40)
+		print("---------------------------------", 0, 50)
+		if ( main_menu_state.selection == 1) then
+			print("instructions", 40, 90, animator)
+			print("start", 55, 100, 6)
+		elseif main_menu_state.selection == 2 then 
+			print("instructions", 40, 90, 6)
+			print("start", 55, 100, animator)
 		end
 	end
-end
+}
 
-function gui:draw()
-	camera()
-	rectfill(0,117,128,128, 4)
-	local p = actors[1]
+character_select_state={
+	update = function()
+		--todo move this line to inside game_state
+		game_state:init()
+		app_state = game_state
+	end,
 
-	if p.state == "player_stats" then
+	draw = function()
+
+	end
+}
+
+game_state={
+	init=function()
+		wallid = 32
+		actor_index=1
+		map_w=34
+		map_h=25
+		mission_num = 1
+		cam_cache = {0,0}
+
+		move_or_action_menu = {}
+		move_or_action_menu[1] = "         move        "
+		move_or_action_menu[2] = "        attack       "		
+		move_or_action_menu[3] = "       use item      "
+		move_or_action_menu[4] = "     player stats    "
+		move_or_action_menu[5] = "     finish turn     "
+
+		rooms={}
+		init_rooms_array()
+
+		--init players and enemies
+		actors={}
+		actors[1] = player:new()
+		actors[1]:init("barbarian")
+
+		enemy_type = {}
+	 
+		--name, hp, ap
+		add(enemy_type, {"goblin",10,2,1,1,1, 16})
+		add(enemy_type, {"skeleton",6,2,2,1,0, 17})
+		add(enemy_type, {"zombie",5,2,3,1,0,18})
+		add(enemy_type, {"orc",8,3,2,1,2,19})
+		add(enemy_type, {"fimir",6,3,3,2,3,20})
+		add(enemy_type, {"mummy",4,3,4,2,0,21})
+		add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
+		add(enemy_type, {"gargoyle",6,4,5,3,4,23})
+
+		chests={}
+		
+		timer=0
+
+		init_mission(mission_num)
+	end,
+
+	update=function()
+		if gui:active_messages() then 
+			gui:update()
+		else
+			--update only the current actor
+			actors[actor_index]:update()
+		end
+	end,
+
+	draw=function()
+		for rm in all(rooms) do
+			rm:draw()
+		end	
+		
+		--draw all actors
+		for ac in all(actors) do
+			ac:draw()
+		end
+
+		--draw all chests
+		for ch in all(chests) do
+			ch:draw()
+		end
+		
+		gui:draw()
+	end
+}
+
+player_stats_state = {
+	update = function()
+		if (btnp(4)) app_state = game_state
+	end,
+
+	draw = function()
+		camera()
 		rectfill(0,0,128,128, 4)
+		local p = actors[1]
 		print("name: " .. p.name, 10, 10, 7)
 		print("att: " .. p.ap, 10, 20, 7)
 		print("def: " .. p.dp, 50, 20, 7)
@@ -99,7 +165,35 @@ function gui:draw()
 			print(item_num_to_string(it), 10, y_offset, 7)
 			y_offset += 10
 		end
-	elseif p.state == "select_item" then
+		restore_camera()
+	end
+}
+
+item_select_state = {
+	update = function ()
+		local p = actors[1]
+		if (btnp(2)) p.item_selection -= 1
+		if (btnp(3)) p.item_selection += 1
+		if (p.item_selection < 1) p.item_selection = #p.items
+		if (p.item_selection > #p.items) p.item_selection = 1
+		if (btnp(5)) then
+			--get item type
+			local item = p.items[p.item_selection]
+			if item == 1 then -- potion
+				local old_bp = p.bp			
+				p.bp += 4
+				if(p.bp > p.max_bp) p.bp = p.max_bp
+				gui.add_message("used potion of heal")
+				gui.add_message(p.bp - old_bp .. " body restored" )
+			end
+			del(p.items, p.items[p.item_selection])
+			app_state = game_state
+		end
+	end,
+
+	draw = function()
+		local p = actors[1]		
+		camera()
 		rectfill(0,0,128,128, 4)
 		print("items:", 10, 40, 7)
 		local y_offset = 50
@@ -111,34 +205,66 @@ function gui:draw()
 				print(item_num_to_string(p.items[num]), 10, y_offset, 7)
 			end
 			y_offset += 10
-		end
+		end	
+		restore_camera()	
 	end
+}
 
-	self.animator += 1
-	if self.animator > 7 then self.animator = 5 end
+--gui
+--------------------------------------
 
-	if #self.messages > 0 then
-		print(self.messages[1][1] .. "\x97", 10, 120, 7)		
+gui = {
+	messages = {},
+	
+	add_message = function (msg, callback)
+		local gui_msg = {msg, callback}
+		add(gui.messages, gui_msg)
+	end,
 
-	elseif actor_index == 1 then --draw player gui
-				
-		if actors[1].state == "move" then	
-			print("       moves left " .. actors[1].ml, 10, 120, 7)		
-		elseif actors[1].state == "move_or_action" then
-				print("\x8b" .. move_or_action_menu[actors[1].menu_selection] .. "\x91", 15, 120, 7)			
-		elseif actors[1].state == "attack_menu" then			
-			print(" \x8bselect enemy\x91   attack\x97", 5, 120, 7)			
-			--get cell to hilight
-			local en = actors[1].adjacent_enemies[actors[1].attack_selection]			
-			restore_camera()
-			rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, self.animator)
+	active_messages = function()
+		return #gui.messages > 0
+	end,
+
+	update = function()
+		if #gui.messages > 0 then
+			if (btnp(5)) then 
+				if gui.messages[1][2] != nil then
+					gui.messages[1][2]()
+				end
+				pop(gui.messages)
+			end
 		end
-	end
+	end,
 
-	restore_camera()
-end
+	draw = function()
+		camera()
+		rectfill(0,117,128,128, 4)
+		local p = actors[1]
+
+		if #gui.messages > 0 then
+			print(gui.messages[1][1] .. "\x97", 10, 120, 7)		
+
+		elseif actor_index == 1 then --draw player gui
+					
+			if p.state == "move" then	
+				print("       moves left " .. p.ml, 10, 120, 7)		
+			elseif p.state == "move_or_action" then
+					print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, 120, 7)			
+			elseif p.state == "attack_menu" then			
+				print(" \x8bselect enemy\x91   attack\x97", 5, 120, 7)			
+				--get cell to hilight
+				local en = p.adjacent_enemies[p.attack_selection]			
+				restore_camera()
+				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
+			end
+		end
+
+		restore_camera()
+	end
+}
 
 --chest class
+-------------------------
 chest = {}
 
 function chest:new(o)
@@ -165,6 +291,7 @@ function chest:draw()
 end
 
 --room class
+-------------------------
 room={}
 
 function room:new(o)
@@ -203,6 +330,9 @@ function room:draw()
 	end
 end
 
+--player class
+-------------------------
+
 player = {}
 
 --player methods
@@ -210,7 +340,29 @@ function player:new (o)
 	o = o or {}   -- create object if user does not provide one
 	setmetatable(o, self)
 	self.__index = self
-	self.ml = 12
+	return o
+end
+
+function player:init(type)
+	if type == "barbarian" then
+		self.sprite = 0
+		self.ap = 3
+		self.dp = 2
+		self.max_bp = 8
+		self.mp = 0
+	elseif type == "elf" then
+		self.ap = 2
+		self.dp = 2
+		self.max_bp = 6
+		self.mp = 4
+	elseif type == "wizard" then
+		self.ap = 1
+		self.dp = 2
+		self.max_bp = 4
+		self.mp = 8
+	end
+
+	self.ml = 0
 	self.x = 0
 	self.y = 0
 	self.menu_selection = 1
@@ -220,19 +372,14 @@ function player:new (o)
 	self.action_used = false
 	self.dice_rolled = false
 
-	self.name = "barbarian"
-	--self.ms = ed[2]
-	self.ap = 3
-	self.dp = 2
-	self.max_bp = 8
-	self.bp = self.max_bp
-	self.mp = 3
-	self.sprite = 0
+	self.name = type
+	self.type = type
+	
 	self.human = true
 	self.alive = true
 	self.g = 0
 	self.items = {}
-	return o
+	self.bp = self.max_bp
 end
 
 function player:update()
@@ -252,29 +399,6 @@ function player:update()
 		self:do_move_or_action_menu()
 	elseif self.state == "attack_menu" then
 		self:do_attack_menu()
-	elseif self.state == "select_item" then	
-		self:do_item_menu()
-	end
-end
-
-function player:do_item_menu()
-	if (btnp(2)) self.item_selection -= 1
-	if (btnp(3)) self.item_selection += 1
-	if (self.item_selection < 1) self.item_selection = #self.items
-	if (self.item_selection > #self.items) self.item_selection = 1
-	if (btnp(5)) then
-		--get item type
-		--todo bounds checking
-		local item = self.items[self.item_selection]
-		if item == 1 then -- potion
-			local old_bp = self.bp			
-			self.bp += 4
-			if(self.bp > self.max_bp) self.bp = self.max_bp
-			gui:add_message("used potion of heal")
-			gui:add_message(self.bp - old_bp .. " body restored" )
-		end
-		self.state = "move_or_action"
-		del(self.items, self.items[self.item_selection])
 	end
 end
 
@@ -283,18 +407,16 @@ function player:rollmovementdice()
 	return flr(rnd(6)) + flr(rnd(6)) + 2
 end
 
-function player:draw()
-	if self.state != "player_stats" and self.state != "select_item" then
-		--centre camera 
-		if actor_index == 1 then
-			set_camera(self.x * 8 - 64, self.y * 8 - 64)
-		end
+function player:draw()	
+	--centre camera 
+	if actor_index == 1 then
+		set_camera(self.x * 8 - 64, self.y * 8 - 64)
+	end
 
-		spr(0,self.x * 8, self.y * 8)
+	spr(0,self.x * 8, self.y * 8)
 
-		if actor_index == 1 then
-			restore_camera()	
-		end
+	if actor_index == 1 then
+		restore_camera()	
 	end
 end
 
@@ -303,7 +425,7 @@ function player:move()
 	if self.dice_rolled == false then
 		self.ml = player:rollmovementdice()
 		self.dice = self.ml
-		gui:add_message("player rolled: " .. self.ml)	
+		gui.add_message("player rolled: " .. self.ml)	
 		self.dice_rolled = true		
 		do return end
 	end
@@ -323,13 +445,13 @@ function player:move()
 			if ( ch != nil and ch.opened == false) then 		
 				if ch.chest_type == 1 then --gold
 					--display what is in it through the gui
-					gui:add_message("you found " .. ch.amount .. " gold")
+					gui.add_message("you found " .. ch.amount .. " gold")
 
 					--add the contents to the player's inventory	
 					self.g += ch.amount
 				elseif ch.chest_type == 2 then --item (ch.amount gives us the type)
 					--
-					gui:add_message("you found " .. item_num_to_string(ch.amount))
+					gui.add_message("you found " .. item_num_to_string(ch.amount))
 
 					add(self.items, ch.amount)
 
@@ -353,8 +475,6 @@ function player:move()
 		end
 	end
 		
-
- 
  	--check collision with walls, rocks and chests
 	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or chest_at_location(self.x, self.y) != nil)	then
 		self.x = prevx
@@ -387,14 +507,6 @@ function player:move()
 		self.ml -= 1
 		reveal_rooms(self.x, self.y)
 	end	
-
-	--next actor if we run out of moves
-	if self.ml <= 0 then 
-		--actor_index += 1 
-		--self.move_used = true
-		--self.state = "move_or_action"
-
-	end
 end
 
 function player:do_move_or_action_menu()
@@ -411,7 +523,7 @@ function player:do_move_or_action_menu()
 			if self.action_used == false then
 				--check if enemy is adjacent todo this shouldnt be called every frame
 				self.adjacent_enemies = self:get_adjacent_enemies()
-				if (#self.adjacent_enemies == 0) gui:add_message("no enemies to attack")
+				if (#self.adjacent_enemies == 0) gui.add_message("no enemies to attack")
 				if (#self.adjacent_enemies > 0) then
 					for en in all(self.adjacent_enemies) do 
 						printh(en.name)
@@ -420,19 +532,15 @@ function player:do_move_or_action_menu()
 					self.attack_selection = 1
 				end
 			else
-				gui:add_message("action already performed")
+				gui.add_message("action already performed")
 			end
 
-		elseif self.menu_selection == 3 then --search for traps			
-			gui:add_message("not implemented")
-		elseif self.menu_selection == 4 then --search for treasure
-			gui:add_message("not implemented")			
-		elseif self.menu_selection == 5 then --use item
-			self.state = "select_item"	
-		elseif self.menu_selection == 6 then --player stats
-			self.state = "player_stats"	
+		elseif self.menu_selection == 3 then --use item
+			app_state = item_select_state	
+		elseif self.menu_selection == 4 then --player stats
+			app_state = player_stats_state
 
-		elseif self.menu_selection == 7 then --end turn
+		elseif self.menu_selection == 5 then --end turn
 			actor_index += 1
 			self.move_used = false
 			self.action_used = false
@@ -622,41 +730,6 @@ function enemy:draw()
 	end
 end
 
---pico 8 functions
-
-
-function _update()
-
-	if my_gui:active_messages() then 
-		my_gui:update()
-	else
-		--update only the current actor
-		actors[actor_index]:update()
-	end
-end
-
-function _draw()
-	--clear screen and draw map
-	cls()
-	--map()
-
-	for rm in all(rooms) do
-		rm:draw()
-	end	
-	
-	--draw all actors
-	for k, v in pairs(actors) do
-		v:draw()
-	end
-
-		--draw all actors
-	for ch in all(chests) do
-		ch:draw()
-	end
-
-	my_gui:draw()	
-end
-
 --helper functions
 function item_num_to_string(item_num)
 	ret = item_num .. " not implemented"
@@ -686,7 +759,7 @@ function chest_at_location(x,y)
 end
 
 function do_actor_attack(attacker, defender)
-	gui:add_message(attacker.name .. " attacks " .. defender.name)
+	gui.add_message(attacker.name .. " attacks " .. defender.name)
 
 	--human players get 2 sides of dice for defence, ai get 1
 	local defender_def_dice_sides = 2
@@ -713,7 +786,7 @@ function do_actor_attack(attacker, defender)
 			attack_hits += 1
 		end
 	end
-	gui:add_message(attacker.name .. " rolls " .. attack_hits .. " attack")
+	gui.add_message(attacker.name .. " rolls " .. attack_hits .. " attack")
 
 	for i=1, defence_dice do
 		local defence_die = flr(rnd(6))
@@ -721,24 +794,24 @@ function do_actor_attack(attacker, defender)
 			defence_hits += 1
 		end
 	end	
-	gui:add_message(defender.name .. " rolls " .. defence_hits .. " defence")
+	gui.add_message(defender.name .. " rolls " .. defence_hits .. " defence")
 
 	--do the math
 	if attack_hits > defence_hits then
 		local damage = attack_hits - defence_hits
 		defender.bp -= damage
-		gui:add_message(defender.name .. " loses " .. damage .. " bp")
+		gui.add_message(defender.name .. " loses " .. damage .. " bp")
 		if defender.bp > 0 then
-			gui:add_message(defender.name .. " has " .. defender.bp .. " bp left")
+			gui.add_message(defender.name .. " has " .. defender.bp .. " bp left")
 		elseif defender.bp <= 0 then
 
-			gui:add_message(defender.name .. " has been killed", function()
+			gui.add_message(defender.name .. " has been killed", function()
 				defender.alive = false
 				defender.active = false
 				end)
 		end
 	else
-		gui:add_message(attacker.name .. " misses")
+		gui.add_message(attacker.name .. " misses")
 	end
 
 end 
