@@ -741,10 +741,10 @@ end
 
 function chest_at_surrounding_location(x,y)
 	local ret = nil
-	if ret == nil then ret = chest_at_location(x+1, y) end
-	if ret == nil then ret = chest_at_location(x-1, y) end
-	if ret == nil then ret = chest_at_location(x, y+1) end
-	if ret == nil then ret = chest_at_location(x, y-1) end
+	if (ret == nil) ret = chest_at_location(x+1, y)
+	if (ret == nil) ret = chest_at_location(x-1, y)
+	if (ret == nil) ret = chest_at_location(x, y+1)
+	if (ret == nil) ret = chest_at_location(x, y-1)
 	return ret
 end
 
@@ -1154,26 +1154,6 @@ function addneighbourtileif(neighbours, x, y)
 	if ( obstructed == false) then
 		add(neighbours,{x,y,1})
 	end
-end
-
--- find the first location of a specific tile type
-function getspecialtile(tileid)
- for x=0,map_w - 1 do
-  for y=0,map_h - 1 do
-   local tile = mget(x,y)
-   if tile == tileid then
-    return {x,y}
-   end
-  end
- end
-end
-
--- insert into start of table
-function insert(t, val)
- for i=(#t+1),2,-1 do
-  t[i] = t[i-1]
- end
- t[1] = val
 end
 
 -- insert into table and sort by priority
