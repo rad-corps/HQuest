@@ -580,6 +580,10 @@ function player:rollmovementdice()
 end
 
 function player:draw()	
+	if self.index == 2 then
+		pal(11, 12, 0)
+	end
+
 	--centre camera 
 	if actor_index == self.index then
 		set_camera(self.x * 8 - 64, self.y * 8 - 64)
@@ -589,6 +593,10 @@ function player:draw()
 
 	if actor_index == self.index then
 		restore_camera()	
+	end
+
+	if self.index == 2 then
+		pal()
 	end
 end
 
