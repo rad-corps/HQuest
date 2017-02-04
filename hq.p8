@@ -22,7 +22,9 @@ function get_mission(num)
 				{20,12}
 			},
 			enemies = { --x, y, type
-				{3,3,2}
+				{3,3,2},
+				{7,21,1}
+
 			},
 			rocks = {
 				{0,1},
@@ -889,7 +891,18 @@ function enemy:update()
 	timer += 1
 	
 	if self.path == nil and self.ml > 0 then
-		self:calcpath()
+		self.paths = {}
+		self:calcpath(1)
+		self:calcpath(2)
+		self.player_index = 2
+
+		--determine shortest of the two paths
+		if #self.paths[1] < #self.paths[2] then
+			self.player_index = 1
+		end
+
+		self.path = self.paths[self.player_index]
+
 		self.pathindex = 1
 	end
 
@@ -910,13 +923,13 @@ function enemy:update()
 				local player_adjacent = false
 				for nb in all(neighbours) do
 					--if player is adjacent. attack
-					if nb[1] == actors[1].x and nb[2] == actors[1].y then 
+					if nb[1] == actors[self.player_index].x and nb[2] == actors[self.player_index].y then 
 						player_adjacent = true
 					end
 				end
 				
 				if player_adjacent == true then
-					do_actor_attack(self, actors[1])
+					do_actor_attack(self, actors[self.player_index])
 				end
 			else
 				local prevx = self.x
@@ -926,7 +939,7 @@ function enemy:update()
 				self.y = self.path[self.pathindex][2]
 
 				--if we landed on another enemy, move back and pass control to next enemy
-				for i=2, #actors do
+				for i=3, #actors do
 					if i != actor_index then
 						if self.x == actors[i].x and self.y == actors[i].y and actors[i].alive then
 							self.x = prevx
@@ -1155,18 +1168,21 @@ function restore_camera()
 end
 
 --astar specific
-function enemy:calcpath()
+function enemy:calcpath(player_num)
 	
-	start = {self.x, self.y} --enemy pos
-	goal = {actors[1].x, actors[1].y} --player pos
+	local start = {self.x, self.y} --enemy pos
+	local goal = {actors[player_num].x, actors[player_num].y} --player pos
 
-	frontier = {}
-	insert(frontier, start, 0)
-	came_from = {}
-	came_from[vectoindex(start)] = nil
-	cost_so_far = {}
-	cost_so_far[vectoindex(start)] = 0
+	local frontier = {}
+	local came_from = {}
+	local cost_so_far = {}
 	local goalfound = false
+	local current = {}
+
+	insert(frontier, start, 0)
+	came_from[vectoindex(start)] = nil
+	cost_so_far[vectoindex(start)] = 0
+	
 
 	--when loop first enters. #frontier == 1 (start space)
 	while (#frontier > 0 and #frontier < 1000) do
@@ -1201,6 +1217,7 @@ function enemy:calcpath()
 
 	else	
 		current = came_from[vectoindex(goal)]
+		
 		self.path = {}
 		
 		local cindex = vectoindex(current)
@@ -1212,6 +1229,7 @@ function enemy:calcpath()
 			cindex = vectoindex(current)
 		end
 		reverse(self.path)
+		self.paths[player_num] = self.path
 	end
 end
 
