@@ -618,12 +618,17 @@ function player:move()
 
 	local prevx = self.x
 	local prevy = self.y
+	local heading = {x=0, y=0}
 	if self.ml > 0 then 
-		if (btnp(0)) self.x -= 1
-		if (btnp(1)) self.x += 1
-		if (btnp(2)) self.y -= 1
-		if (btnp(3)) self.y += 1	
+		if (btnp(0)) heading.x -= 1
+		if (btnp(1)) heading.x += 1
+		if (btnp(2)) heading.y -= 1
+		if (btnp(3)) heading.y += 1	
 	end
+
+	self.x += heading.x
+	self.y += heading.y
+
 	if (btnp(5)) then 
 		local ch_opened = false --check for enemies if no chest was opened
 		do
@@ -659,18 +664,18 @@ function player:move()
 				self.attack_selection = 1
 			end
 		end
+
 		if self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
 			self.state = "move_or_action"
 			self.menu_selection = 5
 		end
 	end
-		
- 	--check collision with walls, rocks and chests
-	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or chest_at_location(self.x, self.y) != nil)	then
+
+	if self:check_simple_collision() == true then
 		self.x = prevx
 		self.y = prevy
 	end
-
+		
 	--check collision with doors
 	if ( mget(self.x, self.y) == 48 )	then
 		mset(self.x, self.y, 49)
@@ -679,15 +684,24 @@ function player:move()
 	--check collision with end tile
 	--printh(fget(mget(self.x, self.y)))
 
-	--check collision with enemies
-	for i=3, #actors do
-		if actors[i].alive == true then
-			if self.x == actors[i].x and self.y == actors[i].y then
-				self.x = prevx
-				self.y = prevy
-			end
+	--check collision with other player
+	local mate = self:get_mate()
+	if mate.x == self.x and mate.y == self.y and mate.alive == true then
+		self.x += heading.x
+		self.y += heading.y
+
+		--do we have at least 2 moves left?
+		if self.ml < 2 or self:check_simple_collision() == true then
+			gui.add_message("can not pass")
+			self.x = prevx
+			self.y = prevy
+
+		else --success
+			gui.add_message("passed player")
+			self.ml -= 1
 		end
 	end
+		
 
 	--check collision with map edge
 	if self.x < 0 or self.x >= map_w or self. y < 0 or self.y >= map_h then
@@ -700,6 +714,32 @@ function player:move()
 		self.ml -= 1
 		reveal_rooms(self.x, self.y)
 	end	
+end
+
+function player:check_simple_collision()
+	local collided = false
+
+ 	--check collision with walls, rocks and chests
+	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or chest_at_location(self.x, self.y) != nil)	then
+		collided = true
+	end
+
+	--check collision with enemies
+	for i=3, #actors do
+		if actors[i].alive == true then
+			if self.x == actors[i].x and self.y == actors[i].y then
+				collided = true
+			end
+		end
+	end
+
+	return collided
+end
+
+function player:get_mate()
+	local mate_index = 2
+	if (self.index == 2) mate_index = 1
+	return actors[mate_index]
 end
 
 function player:do_move_or_action_menu()
