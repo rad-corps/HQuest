@@ -665,6 +665,9 @@ function player:move()
 			end
 		end
 
+		--check surrounding location for mate. open give menu
+		--if self.state != "attack_menu" and ch_opened == false
+
 		if self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
 			self.state = "move_or_action"
 			self.menu_selection = 5
@@ -1284,7 +1287,7 @@ function addneighbourtileif(neighbours, x, y)
 		if mget(x, y) > wallid 	then				
 			obstructed = false						
 			--iterate through actor_list 			
-			for i=2, #actors do
+			for i=3, #actors do
 				if i != actor_index then
 					if x == actors[i].x and y == actors[i].y and actors[i].alive == true then
 						obstructed = true
