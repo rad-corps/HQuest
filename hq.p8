@@ -22,19 +22,7 @@ function get_mission(num)
 				{20,12}
 			},
 			enemies = { --x, y, type
-				{3,3,2},
-				{4,3,2},
-				{8,2,3},
-				{8,3,6},
-				{8,4,3},
-				{12,4,2},
-				{20,21,4}, 
-				{21,20,4}, 
-				{22,19,3},
-				{15,14,3}, 
-				{18,14,3}, 
-				{18,11,3},
-				{16,11,8}
+				{3,3,2}
 			},
 			rocks = {
 				{0,1},
@@ -120,6 +108,38 @@ end
 function _init()
 	app_state = main_menu_state
 	animator = 5
+	actors={}
+
+	enemy_type = {}
+ 
+	--name, hp, ap
+	add(enemy_type, {"goblin",10,2,1,1,1, 16})
+	add(enemy_type, {"skeleton",6,2,2,1,0, 17})
+	add(enemy_type, {"zombie",5,2,3,1,0,18})
+	add(enemy_type, {"orc",8,3,2,1,2,19})
+	add(enemy_type, {"fimir",6,3,3,2,3,20})
+	add(enemy_type, {"mummy",4,3,4,2,0,21})
+	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
+	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
+
+	wallid = 32
+	actor_index=1
+	map_w=34
+	map_h=25
+	mission_num = 1
+	cam_cache = {0,0}
+
+	move_or_action_menu = {}
+	move_or_action_menu[1] = "         move        "
+	move_or_action_menu[2] = "        attack       "		
+	move_or_action_menu[3] = "       use item      "
+	move_or_action_menu[4] = "     player stats    "
+	move_or_action_menu[5] = "     finish turn     "
+
+	timer=0
+
+	rooms={}
+	init_rooms_array()
 end
 
 function _update()
@@ -175,57 +195,50 @@ main_menu_state={
 }
 
 character_select_state={
+	selection = 1,
+	player_num = 1,
+
+	player_types = {
+			{"barbarian", "strong in combat", "no magic ability"},
+			{"elf", "a good fighter", "some magic ability"},
+			{"wizard", "weak defense and combat", "strong magic"}
+	},
+
 	update = function()
-		--todo move this line to inside game_state
-		game_state:init()
-		app_state = game_state
+		if (btnp(0)) character_select_state.selection = max(1, character_select_state.selection - 1)
+		if (btnp(1)) character_select_state.selection = min(3, character_select_state.selection + 1)
+		if (btnp(5)) then
+			--init players and enemies
+			local p = player:new()
+			p:init(character_select_state.player_types[1], character_select_state.player_num)
+			actors[character_select_state.player_num] = p
+			character_select_state.player_num += 1
+
+			if character_select_state.player_num > 2 then
+				game_state:init()
+				app_state = game_state
+			end
+		end
 	end,
 
 	draw = function()
+		rectfill(0,0,128,128, 4)
+		
+		print("player " .. character_select_state.player_num, 64 - 2 * 8, 60, 6)
+		
+		local p_type = character_select_state.player_types[character_select_state.selection]
+		local y_pos = 70
+
+		for i=1, #p_type do
+			print(p_type[i], 64 - 2 * #p_type[i], y_pos, 6)
+			y_pos += 10
+		end
 
 	end
 }
 
 game_state={
 	init=function()
-		wallid = 32
-		actor_index=1
-		map_w=34
-		map_h=25
-		mission_num = 1
-		cam_cache = {0,0}
-
-		move_or_action_menu = {}
-		move_or_action_menu[1] = "         move        "
-		move_or_action_menu[2] = "        attack       "		
-		move_or_action_menu[3] = "       use item      "
-		move_or_action_menu[4] = "     player stats    "
-		move_or_action_menu[5] = "     finish turn     "
-
-		rooms={}
-		init_rooms_array()
-
-		--init players and enemies
-		actors={}
-		actors[1] = player:new()
-		actors[1]:init("barbarian")
-
-		enemy_type = {}
-	 
-		--name, hp, ap
-		add(enemy_type, {"goblin",10,2,1,1,1, 16})
-		add(enemy_type, {"skeleton",6,2,2,1,0, 17})
-		add(enemy_type, {"zombie",5,2,3,1,0,18})
-		add(enemy_type, {"orc",8,3,2,1,2,19})
-		add(enemy_type, {"fimir",6,3,3,2,3,20})
-		add(enemy_type, {"mummy",4,3,4,2,0,21})
-		add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
-		add(enemy_type, {"gargoyle",6,4,5,3,4,23})
-
-		chests={}
-		
-		timer=0
-
 		init_mission(mission_num)
 	end,
 
@@ -265,7 +278,7 @@ player_stats_state = {
 	draw = function()
 		camera()
 		rectfill(0,0,128,128, 4)
-		local p = actors[1]
+		local p = actors[actor_index]
 		print("name: " .. p.name, 10, 10, 7)
 		print("att: " .. p.ap, 10, 20, 7)
 		print("def: " .. p.dp, 50, 20, 7)
@@ -284,7 +297,7 @@ player_stats_state = {
 
 item_select_state = {
 	update = function ()
-		local p = actors[1]
+		local p = actors[actor_index]
 		if (btnp(2)) p.item_selection -= 1
 		if (btnp(3)) p.item_selection += 1
 		if (p.item_selection < 1) p.item_selection = #p.items
@@ -305,7 +318,7 @@ item_select_state = {
 	end,
 
 	draw = function()
-		local p = actors[1]		
+		local p = actors[actor_index]		
 		camera()
 		rectfill(0,0,128,128, 4)
 		print("items:", 10, 40, 7)
@@ -352,12 +365,12 @@ gui = {
 	draw = function()
 		camera()
 		rectfill(0,117,128,128, 4)
-		local p = actors[1]
+		local p = actors[actor_index]
 
 		if #gui.messages > 0 then
 			print(gui.messages[1][1] .. "\x97", 10, 120, 7)		
 
-		elseif actor_index == 1 then --draw player gui
+		elseif actor_index < 3 then --draw player gui
 					
 			if p.state == "move" then	
 				print("       moves left " .. p.ml, 10, 120, 7)		
@@ -499,9 +512,12 @@ function player:new (o)
 	return o
 end
 
-function player:init(type)
+function player:init(type, index)
+	--todo each player type should have a different sprite
+	self.sprite = 0
+	self.index = index
+
 	if type == "barbarian" then
-		self.sprite = 0
 		self.ap = 3
 		self.dp = 2
 		self.max_bp = 8
@@ -565,13 +581,13 @@ end
 
 function player:draw()	
 	--centre camera 
-	if actor_index == 1 then
+	if actor_index == self.index then
 		set_camera(self.x * 8 - 64, self.y * 8 - 64)
 	end
 
 	spr(0,self.x * 8, self.y * 8)
 
-	if actor_index == 1 then
+	if actor_index == self.index then
 		restore_camera()	
 	end
 end
@@ -647,10 +663,10 @@ function player:move()
 	end
 
 	--check collision with end tile
-	printh(fget(mget(self.x, self.y)))
+	--printh(fget(mget(self.x, self.y)))
 
 	--check collision with enemies
-	for i=2, #actors do
+	for i=3, #actors do
 		if actors[i].alive == true then
 			if self.x == actors[i].x and self.y == actors[i].y then
 				self.x = prevx
@@ -673,6 +689,7 @@ function player:move()
 end
 
 function player:do_move_or_action_menu()
+
 	if (btnp(0)) self.menu_selection -= 1
 	if (btnp(1)) self.menu_selection += 1
 	if self.menu_selection < 1 then self.menu_selection = #move_or_action_menu end
@@ -886,7 +903,7 @@ function enemy:get_adjacent_player()
 	return ret
 end
 
-function enemy:draw()
+function enemy:draw()	
 	if self.active == true then 
 		spr(self.sprite, self.x * 8, self.y * 8)
 	end
@@ -901,6 +918,7 @@ function item_num_to_string(item_num)
 	return ret
 end
 
+--todo change to closed_chest....
 function chest_at_surrounding_location(x,y)
 	local ret = nil
 	if (ret == nil) ret = chest_at_location(x+1, y)
@@ -994,6 +1012,8 @@ function init_mission(num)
 
 	actors[1].x = mission.starting_point[1]
 	actors[1].y = mission.starting_point[2]
+	actors[2].x = mission.starting_point[1] + 1
+	actors[2].y = mission.starting_point[2]
 
 	--add the enemies
 	for en in all(mission.enemies) do
@@ -1010,6 +1030,7 @@ function init_mission(num)
 	end	
 
 	--initialise chests
+	chests={}
 	for ch in all (mission.chest_data) do
 		local l_chest = chest:new()
 		l_chest:init(ch[1], ch[2], ch[3], ch[4])
@@ -1022,13 +1043,11 @@ function reveal_rooms(x,y)
 	for rm in all(rooms) do
 		--check player collision with room
 		if cell_in_room(rm, x, y) then
-			printh("revealing room: " .. rm.x .. " " .. rm.y)
 			rm.visible = true
 
 			--check all enemies collision with room
 			for i=2, #actors do
 				if cell_in_room(rm, actors[i].x, actors[i].y) then
-					printh("setting actor to active: " .. i )
 					if actors[i].alive == true then
 						actors[i].active = true
 					end
