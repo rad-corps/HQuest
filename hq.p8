@@ -210,7 +210,7 @@ character_select_state={
 		if (btnp(5)) then
 			--init players and enemies
 			local p = player:new()
-			p:init(character_select_state.player_types[1], character_select_state.player_num)
+			p:init(character_select_state.player_types[character_select_state.selection][1], character_select_state.player_num)
 			actors[character_select_state.player_num] = p
 			character_select_state.player_num += 1
 
@@ -513,21 +513,28 @@ function player:new (o)
 end
 
 function player:init(type, index)
-	--todo each player type should have a different sprite
-	self.sprite = 0
+	--todo each player type should have a different sprite	
 	self.index = index
 
+	printh(type)
+
 	if type == "barbarian" then
+		printh("sprite 0")
+		self.sprite = 0
 		self.ap = 3
 		self.dp = 2
 		self.max_bp = 8
 		self.mp = 0
 	elseif type == "elf" then
+		printh("sprite 1")
+		self.sprite = 1
 		self.ap = 2
 		self.dp = 2
 		self.max_bp = 6
 		self.mp = 4
 	elseif type == "wizard" then
+		printh("sprite 2")
+		self.sprite = 2
 		self.ap = 1
 		self.dp = 2
 		self.max_bp = 4
@@ -589,7 +596,7 @@ function player:draw()
 		set_camera(self.x * 8 - 64, self.y * 8 - 64)
 	end
 
-	spr(0,self.x * 8, self.y * 8)
+	spr(self.sprite,self.x * 8, self.y * 8)
 
 	if actor_index == self.index then
 		restore_camera()	
