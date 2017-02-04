@@ -628,7 +628,7 @@ function player:move()
 	if (btnp(5)) then 
 		local ch_opened = false --check for enemies if no chest was opened
 		do
-			local ch = chest_at_surrounding_location(self.x, self.y)
+			local ch = closed_chest_at_surrounding_location(self.x, self.y)
 			if ( ch != nil and ch.opened == false) then 		
 				if ch.chest_type == 1 then --gold
 					--display what is in it through the gui
@@ -934,15 +934,28 @@ function item_num_to_string(item_num)
 end
 
 --todo change to closed_chest....
-function chest_at_surrounding_location(x,y)
+function closed_chest_at_surrounding_location(x,y)
 	local ret = nil
-	if (ret == nil) ret = chest_at_location(x+1, y)
-	if (ret == nil) ret = chest_at_location(x-1, y)
-	if (ret == nil) ret = chest_at_location(x, y+1)
-	if (ret == nil) ret = chest_at_location(x, y-1)
+	if (ret == nil) ret = closed_chest_at_location(x+1, y)
+	if (ret == nil) ret = closed_chest_at_location(x-1, y)
+	if (ret == nil) ret = closed_chest_at_location(x, y+1)
+	if (ret == nil) ret = closed_chest_at_location(x, y-1)
 	return ret
 end
 
+function closed_chest_at_location(x,y)
+	local ret = chest_at_location(x,y)
+	if ret != nil then
+		printh("ret == chest")
+		if (ret.opened == true) then 
+			ret = nil
+			printh("chest open")
+		end
+	end
+	return ret
+end
+
+--todo, shouldnt need this function. use sprite flags instead
 function chest_at_location(x,y)
 	local ret = nil
 	for ch in all(chests) do
