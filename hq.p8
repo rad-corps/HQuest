@@ -353,7 +353,7 @@ gui = {
 
 	update = function()
 		if #gui.messages > 0 then
-			if (btnp(5)) then 
+			if (btnp(5) or btnp(0) or btnp(1) or btnp(2) or btnp(3)) then 
 				if gui.messages[1][2] != nil then
 					gui.messages[1][2]()
 				end
