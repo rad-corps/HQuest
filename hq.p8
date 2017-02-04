@@ -602,9 +602,8 @@ function player:draw()
 		restore_camera()	
 	end
 
-	if self.index == 2 then
-		pal()
-	end
+	pal()
+
 end
 
 function player:move()
