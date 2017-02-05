@@ -34,10 +34,10 @@ function get_mission(num)
 				{17,7}
 			},
 			chest_data = { --x,y,type,amount/strength
-				{2, 22, 2, 1},
-				{4, 22, 2, 1},
-				{22, 22, 2, 1},
-				{21, 22, 2, 1}
+				{2, 22, 2, 0},
+				{4, 22, 3, 0},
+				{22, 22, 1, 50},
+				{21, 22, 1, 100}
 			},
 			end_tile = {6,18}
 		}
@@ -110,6 +110,7 @@ end
 function _init()
 	app_state = main_menu_state
 	animator = 5
+	gold = 0
 	actors={}
 
 	enemy_type = {}
@@ -286,7 +287,7 @@ player_stats_state = {
 		print("def: " .. p.dp, 50, 20, 7)
 		print("body: " .. p.bp, 90, 20, 7)
 		print("mind: " .. p.mp, 10, 30, 7)
-		print("gold: " .. p.g, 50, 30, 7)
+		print("shared gold: " .. gold, 50, 30, 7)
 		print("items:", 10, 40, 7)
 		local y_offset = 50
 		for it in all(p.items) do
@@ -388,7 +389,8 @@ gui = {
 				restore_camera()
 				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
 			elseif p.state == "give_menu" then			
-				print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91 give\x97", 5, 120, 7)			
+				print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
+				print("\x97give", 97, 120, 7)	
 				--get cell to hilight
 				local mt = p:get_mate()
 				restore_camera()
@@ -567,7 +569,7 @@ function player:init(type, index)
 	
 	self.human = true
 	self.alive = true
-	self.g = 0
+	--self.g = 0
 	self.items = {}
 	self.bp = self.max_bp
 end
@@ -595,15 +597,24 @@ function player:update()
 end
 
 function player:do_give_menu()
-	if (btnp(5)) then
+	if (btnp(0)) then		
+		self.item_selection = max(self.item_selection - 1, 1)
+	elseif (btnp(1)) then
+		self.item_selection = min(self.item_selection + 1, #self.items)
+	elseif (btnp(5)) then --assume we can only get here when already adjacent
 		
 		local mate = self:get_mate()
 
 		--copy the item to our mate
 		add(mate.items, self.items[self.item_selection])
 
+		gui.add_message("given " .. item_num_to_string(self.items[self.item_selection]))
+
 		--remove the item from ourselves
 		del(self.items, self.item_selection)
+
+		self.state = "move_or_action"
+
 	end
 end
 
@@ -665,12 +676,12 @@ function player:move()
 					gui.add_message("you found " .. ch.amount .. " gold")
 
 					--add the contents to the player's inventory	
-					self.g += ch.amount
-				elseif ch.chest_type == 2 then --item (ch.amount gives us the type)
-					--
-					gui.add_message("you found " .. item_num_to_string(ch.amount))
-
-					add(self.items, ch.amount)
+					--gold is now global
+					--self.g += ch.amount 
+					gold += ch.amount
+				elseif ch.chest_type >= 2 then --item 					
+					gui.add_message("you found " .. item_num_to_string(ch.chest_type))
+					add(self.items, ch.chest_type)
 
 				end
 				
@@ -693,7 +704,10 @@ function player:move()
 
 		--check surrounding location for mate. open give menu
 		if self.state != "attack_menu" and ch_opened == false and self:is_player_adjacent() == true then
-			self.state = "give_menu"
+			if #self.items >= 1 then
+				self.state = "give_menu"
+				self.item_selection = 1
+			end
 
 		elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
 			self.state = "move_or_action"
@@ -1023,9 +1037,11 @@ end
 --helper functions
 function item_num_to_string(item_num)
 	ret = item_num .. " not implemented"
-	if item_num == 1 then 
-		ret = "potion of healing"
-	end
+	if item_num == 2 then 
+		ret = "heal potion"
+	elseif item_num == 3 then 
+		ret = "strength potion"
+	end	
 	return ret
 end
 
