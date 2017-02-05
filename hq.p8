@@ -401,7 +401,8 @@ gui = {
 				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
 			elseif p.state == "spell_menu" then		
 				--todo say spell name	
-				print(" \x8bcast spell on\x91   cast\x97", 5, 120, 7)			
+				local spell_name = spell_list[p.spell_selection][1]
+				print(" \x8bcast ".. spell_name .." on\x91   cast\x97", 5, 120, 7)			
 				--get cell to hilight
 				local en = p.adjacent_enemies[p.attack_selection]			
 				restore_camera()
@@ -914,6 +915,7 @@ function player:do_spell_menu()
 
 		if self.mp >= spell[3] then
 			self.mp -= spell[3]
+			self.action_used = true
 			if spell[1] == "heal" then --heal
 				local old_bp = spell_receiver.bp
 				spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
@@ -921,7 +923,15 @@ function player:do_spell_menu()
 				gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
 
 			elseif spell[1] == "fire" then --fire
-
+				local old_bp = spell_receiver.bp
+				gui.add_message("fire cast on " .. spell_receiver.name)
+				spell_receiver.bp = max(0, spell_receiver.bp - 1)
+				gui.add_message(spell_receiver.name .. " lost " ..old_bp-spell_receiver.bp .. " body point(s)")
+				if spell_receiver.bp <= 0 then
+					spell_receiver.alive = false
+					spell_receiver.active = false
+					gui.add_message(spell_receiver.name .. " was killed")
+				end
 			elseif spell[1] == "sleep" then --sleep
 
 			elseif spell[1] == "protection" then --protection
