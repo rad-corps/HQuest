@@ -126,11 +126,11 @@ function _init()
 	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
 
 	--string, type, magic cost
-	spell_type = {}
-	add(spell_type, {"heal",1,2,})
-	add(spell_type, {"fire",2,2,})
-	add(spell_type, {"sleep",3,1,})
-	add(spell_type, {"protect",4,2,})
+	spell_list = {}
+	add(spell_list, {"heal",1,2,})
+	add(spell_list, {"fire",2,2,})
+	add(spell_list, {"sleep",3,1,})
+	add(spell_list, {"protect",4,2,})
 
 	wallid = 32
 	actor_index=1
@@ -388,14 +388,24 @@ gui = {
 					
 			if p.state == "move" then	
 				print("       moves left " .. p.ml, 10, 120, 7)		
-			elseif p.state == "move_or_action" then
-					print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, 120, 7)			
+			elseif p.state == "move_or_action" then					
+				print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, 120, 7)		
+			elseif p.state == "spell_select" then
+				local spell_name = "\x8b" .. spell_list[p.spell_selection][1] .. "\x91"					
+				print(spell_name,  64 - #spell_name * 2, 120, 7)	
 			elseif p.state == "attack_menu" then			
 				print(" \x8bselect enemy\x91   attack\x97", 5, 120, 7)			
 				--get cell to hilight
 				local en = p.adjacent_enemies[p.attack_selection]			
 				restore_camera()
 				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
+			elseif p.state == "spell_menu" then		
+				--todo say spell name	
+				print(" \x8bcast spell on\x91   cast\x97", 5, 120, 7)			
+				--get cell to hilight
+				local en = p.adjacent_enemies[p.attack_selection]			
+				restore_camera()
+				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)				
 			elseif p.state == "give_menu" then			
 				print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
 				print("\x97give", 97, 120, 7)	
@@ -601,6 +611,10 @@ function player:update()
 		self:do_attack_menu()
 	elseif self.state == "give_menu" then
 		self:do_give_menu()		
+	elseif self.state == "spell_select" then
+		self:do_spell_select()		
+	elseif self.state == "spell_menu" then
+		self:do_spell_menu()		
 	end	
 end
 
@@ -634,6 +648,7 @@ end
 function player:draw()	
 	if self.index == 2 then
 		pal(5, 13, 0)
+		pal(13, 5, 0)
 	end
 
 	--centre camera 
@@ -794,6 +809,18 @@ function player:get_mate()
 	return actors[mate_index]
 end
 
+function player:do_spell_select()
+	if (btnp(0)) self.spell_selection = max(1, self.spell_selection - 1)
+	if (btnp(1)) self.spell_selection = min(#spell_list, self.spell_selection + 1)
+	if (btnp(5)) then
+		--todo this stuff needs to happen after selecting a spell
+		self.adjacent_enemies = self:get_actors_in_room()
+		self.state = "spell_menu"
+		printh("self.adjacent_enemies size " .. #self.adjacent_enemies)
+		self.attack_selection = 1
+	end
+end
+
 function player:do_move_or_action_menu()
 
 	if (btnp(0)) self.menu_selection -= 1
@@ -819,13 +846,8 @@ function player:do_move_or_action_menu()
 		elseif self.menu_selection == 3 then --cast spell						
 			printh("cast spell selected")
 			if self.action_used == false then
-
 				self.state = "spell_select"
-
-				-- --todo this stuff needs to happen after selecting a spell
-				-- self.adjacent_enemies = self:get_actors_in_room()
-				-- self.state = "spell_menu"
-				-- self.attack_selection = 1				
+				self.spell_selection = 1			
 			else
 				gui.add_message("action already performed")
 			end
@@ -847,7 +869,7 @@ function player:do_move_or_action_menu()
 	end
 end
 
-function player:do_attack_menu()
+function player:update_attack_selection()
 	if (btnp(0)) then --left arrow (change selected enemy to attack)
 		self.attack_selection -= 1
 		if self.attack_selection == 0 then
@@ -862,7 +884,13 @@ function player:do_attack_menu()
 		self.adjacent_enemies = nil
 		self.attack_selection = nil
 		self.state = "move_or_action"
-	elseif (btnp(5)) then --x attack enemy
+	end
+end
+
+function player:do_attack_menu()
+	self:update_attack_selection()
+
+	if (btnp(5)) then --x attack enemy
 		self:attack_enemy()
 		self.action_used = true		
 		if self.dice_rolled == true then
@@ -870,6 +898,34 @@ function player:do_attack_menu()
 			self.ml = 0
 			self.move_used = true
 		end
+		self.state = "move_or_action"
+	end		
+end
+
+function player:do_spell_menu()
+	self:update_attack_selection()
+
+	if (btnp(5)) then --x use spell
+		local spell_receiver = self.adjacent_enemies[self.attack_selection]
+		local spell = spell_list[self.spell_selection]
+
+		--what spell are we using
+		printh("using spell: " .. spell[1] .. " on " .. spell_receiver.name)
+
+		if spell[1] == "heal" then --heal
+			local old_bp = spell_receiver.bp
+			spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
+			gui.add_message("heal cast on " .. spell_receiver.name)
+			gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
+
+		elseif spell[1] == "fire" then --fire
+
+		elseif spell[1] == "sleep" then --sleep
+
+		elseif spell[1] == "protection" then --protection
+
+		end
+
 		self.state = "move_or_action"
 	end		
 end
@@ -959,6 +1015,7 @@ function enemy:init(en)
 	self.ap = ed[3]
 	self.dp = ed[4]
 	self.bp = ed[5]
+	self.max_bp = self.bp
 	self.mp = ed[6]
 	self.sprite = ed[7]
 end
