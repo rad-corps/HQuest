@@ -125,6 +125,13 @@ function _init()
 	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
 	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
 
+	--string, type, magic cost
+	spell_type = {}
+	add(spell_type, {"heal",1,2,})
+	add(spell_type, {"fire",2,2,})
+	add(spell_type, {"sleep",3,1,})
+	add(spell_type, {"protect",4,2,})
+
 	wallid = 32
 	actor_index=1
 	map_w=34
@@ -135,9 +142,10 @@ function _init()
 	move_or_action_menu = {}
 	move_or_action_menu[1] = "         move        "
 	move_or_action_menu[2] = "        attack       "		
-	move_or_action_menu[3] = "       use item      "
-	move_or_action_menu[4] = "     player stats    "
-	move_or_action_menu[5] = "     finish turn     "
+	move_or_action_menu[3] = "      cast spell     "	
+	move_or_action_menu[4] = "       use item      "
+	move_or_action_menu[5] = "     player stats    "
+	move_or_action_menu[6] = "     finish turn     "
 
 	timer=0
 
@@ -286,7 +294,7 @@ player_stats_state = {
 		print("att: " .. p.ap, 10, 20, 7)
 		print("def: " .. p.dp, 50, 20, 7)
 		print("body: " .. p.bp, 90, 20, 7)
-		print("mind: " .. p.mp, 10, 30, 7)
+		print("magic: " .. p.mp, 10, 30, 7)
 		print("shared gold: " .. gold, 50, 30, 7)
 		print("items:", 10, 40, 7)
 		local y_offset = 50
@@ -711,7 +719,7 @@ function player:move()
 
 		elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
 			self.state = "move_or_action"
-			self.menu_selection = 5
+			self.menu_selection = 6
 		end
 	end
 
@@ -799,26 +807,34 @@ function player:do_move_or_action_menu()
 			self.state = "move"
 		elseif self.menu_selection == 2 then --attack						
 			if self.action_used == false then
-				--check if enemy is adjacent todo this shouldnt be called every frame
 				self.adjacent_enemies = self:get_adjacent_enemies()
-				if (#self.adjacent_enemies == 0) gui.add_message("no enemies to attack")
+				if (#self.adjacent_enemies == 0) gui.add_message("no enemy to attack")
 				if (#self.adjacent_enemies > 0) then
-					for en in all(self.adjacent_enemies) do 
-						printh(en.name)
-					end
 					self.state = "attack_menu"
 					self.attack_selection = 1
 				end
 			else
 				gui.add_message("action already performed")
 			end
+		elseif self.menu_selection == 3 then --cast spell						
+			printh("cast spell selected")
+			if self.action_used == false then
 
-		elseif self.menu_selection == 3 then --use item
+				self.state = "spell_select"
+
+				-- --todo this stuff needs to happen after selecting a spell
+				-- self.adjacent_enemies = self:get_actors_in_room()
+				-- self.state = "spell_menu"
+				-- self.attack_selection = 1				
+			else
+				gui.add_message("action already performed")
+			end
+		elseif self.menu_selection == 4 then --use item
 			app_state = item_select_state	
-		elseif self.menu_selection == 4 then --player stats
+		elseif self.menu_selection == 5 then --player stats
 			app_state = player_stats_state
 
-		elseif self.menu_selection == 5 then --end turn
+		elseif self.menu_selection == 6 then --end turn
 			actor_index += 1
 			self.move_used = false
 			self.action_used = false
@@ -874,6 +890,28 @@ function player:get_adjacent_enemies()
 		if neighbour[3] > 5 then --this is the traversal cost. cost of 6 is an enemy
 			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
 		end
+	end
+
+	return ret
+end
+
+--this could be simplified
+function player:get_actors_in_room()
+	local ret = {}
+
+	--get all rooms player is in
+	local rooms = rooms_actor_is_in(self)
+
+	--check all enemies collision with room
+	for rm in all(rooms) do
+		for i=1, #actors do
+			if cell_in_room(rm, actors[i].x, actors[i].y) then
+				if actors[i].alive == true then
+					--todo only add if unique
+					add(ret, actors[i])
+				end
+			end
+		end	
 	end
 
 	return ret
@@ -1176,6 +1214,16 @@ function init_mission(num)
 		l_chest:init(ch[1], ch[2], ch[3], ch[4])
 		add(chests, l_chest)
 	end	
+end
+
+function rooms_actor_is_in(actor)
+	ret = {}
+	for rm in all(rooms) do
+		if cell_in_room(rm, actor.x, actor.y) then
+			add(ret, rm)
+		end
+	end
+	return ret
 end
 
 function reveal_rooms(x,y)
