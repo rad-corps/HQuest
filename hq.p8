@@ -912,21 +912,27 @@ function player:do_spell_menu()
 		--what spell are we using
 		printh("using spell: " .. spell[1] .. " on " .. spell_receiver.name)
 
-		if spell[1] == "heal" then --heal
-			local old_bp = spell_receiver.bp
-			spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
-			gui.add_message("heal cast on " .. spell_receiver.name)
-			gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
+		if self.mp >= spell[3] then
+			self.mp -= spell[3]
+			if spell[1] == "heal" then --heal
+				local old_bp = spell_receiver.bp
+				spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
+				gui.add_message("heal cast on " .. spell_receiver.name)
+				gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
 
-		elseif spell[1] == "fire" then --fire
+			elseif spell[1] == "fire" then --fire
 
-		elseif spell[1] == "sleep" then --sleep
+			elseif spell[1] == "sleep" then --sleep
 
-		elseif spell[1] == "protection" then --protection
+			elseif spell[1] == "protection" then --protection
 
+			end
+			self.state = "move_or_action"
+		else
+			gui.add_message("not enough mp")
 		end
 
-		self.state = "move_or_action"
+		
 	end		
 end
 
