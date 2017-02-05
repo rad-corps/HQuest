@@ -304,6 +304,9 @@ item_select_state = {
 		if (btnp(3)) p.item_selection += 1
 		if (p.item_selection < 1) p.item_selection = #p.items
 		if (p.item_selection > #p.items) p.item_selection = 1
+		if (btnp(4)) then
+			app_state = game_state
+		end
 		if (btnp(5)) then
 			--get item type
 			local item = p.items[p.item_selection]
@@ -384,6 +387,12 @@ gui = {
 				local en = p.adjacent_enemies[p.attack_selection]			
 				restore_camera()
 				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
+			elseif p.state == "give_menu" then			
+				print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91 give\x97", 5, 120, 7)			
+				--get cell to hilight
+				local mt = p:get_mate()
+				restore_camera()
+				rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
 			end
 		end
 
@@ -580,6 +589,21 @@ function player:update()
 		self:do_move_or_action_menu()
 	elseif self.state == "attack_menu" then
 		self:do_attack_menu()
+	elseif self.state == "give_menu" then
+		self:do_give_menu()		
+	end	
+end
+
+function player:do_give_menu()
+	if (btnp(5)) then
+		
+		local mate = self:get_mate()
+
+		--copy the item to our mate
+		add(mate.items, self.items[self.item_selection])
+
+		--remove the item from ourselves
+		del(self.items, self.item_selection)
 	end
 end
 
@@ -668,9 +692,10 @@ function player:move()
 		end
 
 		--check surrounding location for mate. open give menu
-		--if self.state != "attack_menu" and ch_opened == false
+		if self.state != "attack_menu" and ch_opened == false and self:is_player_adjacent() == true then
+			self.state = "give_menu"
 
-		if self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
+		elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
 			self.state = "move_or_action"
 			self.menu_selection = 5
 		end
@@ -840,6 +865,22 @@ function player:get_adjacent_enemies()
 	return ret
 end
 
+function player:is_player_adjacent()
+	local mate = self:get_mate()
+	local ret = false
+
+	if mate.x == self.x then
+		if mate.y == self.y + 1 or mate.y == self.y - 1 then
+			ret = true
+		end
+	elseif mate.y == self.y then
+		if mate.x == self.x + 1 or mate.x == self.x - 1 then
+			ret = true
+		end
+	end
+	return ret
+end
+
 enemy={}
 
 --enemy functions
@@ -959,19 +1000,19 @@ function enemy:update()
  	set_camera(self.x * 8 - 64, self.y * 8 - 64)
 end
 
-function enemy:get_adjacent_player()
-	local ret = {}
+-- function enemy:get_adjacent_player()
+-- 	local ret = {}
 
-	local neighbour_tiles = getneighbours({self.x, self.y})
+-- 	local neighbour_tiles = getneighbours({self.x, self.y})
 
-	for neighbour in all (neighbour_tiles) do
-		if neighbour[1] == actor[1].x and neighbour[2] == actor[1].y then --this is the traversal cost. cost of 6 is an enemy
-			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
-		end
-	end
+-- 	for neighbour in all (neighbour_tiles) do
+-- 		if neighbour[1] == actor[1].x and neighbour[2] == actor[1].y then --this is the traversal cost. cost of 6 is an enemy
+-- 			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
+-- 		end
+-- 	end
 
-	return ret
-end
+-- 	return ret
+-- end
 
 function enemy:draw()	
 	if self.active == true then 
