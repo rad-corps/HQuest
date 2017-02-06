@@ -112,6 +112,8 @@ end
 function _init()
 	app_state = main_menu_state
 	animator = 5
+	animator2 = false
+	animator2_counter = 0
 	gold = 0
 	game_over = false
 	actors={}
@@ -193,6 +195,16 @@ end
 
 function _draw()
 	cls()
+	
+	animator2_counter += 1
+	if (animator2_counter > 15) then
+		animator2_counter = 0
+		if animator2 == false then
+			animator2 = true
+		else
+			animator2 = false
+		end
+	end
 
 	animator += 1
 	if (animator > 7) animator = 5
@@ -718,9 +730,8 @@ function player:draw()
 
 	--centre camera 
 	if actor_index == self.index then
-
 		set_camera(self.x * 8 - 64, self.y * 8 - 64)
-		if animator > 6 then
+		if animator2 == true then
 			rect(self.x * 8, self.y * 8, self.x * 8 + 7, self.y * 8 + 7, 11)
 		end				
 	end
@@ -985,41 +996,44 @@ function player:do_spell_menu()
 		--what spell are we using
 		printh("using spell: " .. spell[1] .. " on " .. spell_receiver.name)
 
-		if self.mp >= spell[3] then
-			self.mp -= spell[3]
-			self.action_used = true
-			if spell[1] == "heal" then --heal
-				local old_bp = spell_receiver.bp
-				spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
-				gui.add_message("heal cast on " .. spell_receiver.name)
-				gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
-
-			elseif spell[1] == "fire" then --fire
-				local old_bp = spell_receiver.bp
-				gui.add_message("fire cast on " .. spell_receiver.name)
-				spell_receiver.bp = max(0, spell_receiver.bp - 1)
-				gui.add_message(spell_receiver.name .. " lost " ..old_bp-spell_receiver.bp .. " body point(s)")
-				if spell_receiver.bp <= 0 then
-					spell_receiver.alive = false
-					spell_receiver.active = false
-					gui.add_message(spell_receiver.name .. " was killed")
-				end
-			elseif spell[1] == "sleep" then --sleep
-				gui.add_message("not yet implemented")
-				self.mp += spell[3]
-				self.action_used = false
-			elseif spell[1] == "protection" then --protection
-				gui.add_message("not yet implemented")
-				self.mp += spell[3]
-				self.action_used = false
-			end
-			self.state = "move_or_action"
-		else
-			gui.add_message("not enough mp")
-		end
-
-		
+		self:cast_spell(spell, spell_receiver)		
 	end		
+end
+
+function player:cast_spell(spell, spell_receiver)
+	if self.mp >= spell[3] then
+		self.mp -= spell[3]
+		self.action_used = true
+		if spell[1] == "heal" then --heal
+			local old_bp = spell_receiver.bp
+			spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
+			gui.add_message("heal cast on " .. spell_receiver.name)
+			gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
+		elseif spell[1] == "fire" then --fire
+			local old_bp = spell_receiver.bp
+			gui.add_message("fire cast on " .. spell_receiver.name)
+			spell_receiver.bp = max(0, spell_receiver.bp - 1)
+			gui.add_message(spell_receiver.name .. " lost " ..old_bp-spell_receiver.bp .. " body point(s)")
+			if spell_receiver.bp <= 0 then
+
+				gui.add_message(spell_receiver.name .. " was killed", function()
+						spell_receiver.alive = false
+						spell_receiver.active = false
+					end)
+			end
+		elseif spell[1] == "sleep" then --sleep
+			gui.add_message("not yet implemented")
+			self.mp += spell[3]
+			self.action_used = false
+		elseif spell[1] == "protection" then --protection
+			gui.add_message("not yet implemented")
+			self.mp += spell[3]
+			self.action_used = false
+		end
+		self.state = "move_or_action"
+	else
+		gui.add_message("not enough mp")
+	end
 end
 
 function player:attack_enemy()
