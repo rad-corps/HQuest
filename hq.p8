@@ -113,7 +113,10 @@ function _init()
 	app_state = main_menu_state
 	animator = 5
 	gold = 0
+	game_over = false
 	actors={}
+
+	printh("num actors = " .. #actors)
 
 	enemy_type = {}
 
@@ -212,6 +215,7 @@ main_menu_state={
 				--app_state = instructions
 			end
 			if (main_menu_state.selection == 2) then 
+				character_select_state.init()
 				app_state = character_select_state
 			end		
 		end	
@@ -237,8 +241,14 @@ main_menu_state={
 }
 
 character_select_state={
+
 	selection = 1,
 	player_num = 1,
+	
+	init=function ()
+		character_select_state.selection = 1
+		character_select_state.player_num = 1
+	end,
 
 	player_types = {
 			{"barbarian", "strong in combat", "no magic ability"},
@@ -287,20 +297,21 @@ game_state={
 	update=function()
 		if gui.active_messages() then 
 			gui.update()
-		else
-			
+		else			
 			--update only the current actor
 			actors[actor_index]:update()
 		end
 
 		if actors[1] != nil then
-			if actors[1].alive == false and actors[2].alive == false then
+			if actors[1].alive == false and actors[2].alive == false and game_over == false then
+				game_over = true
 				gui.add_message("your team has been killed")
 				gui.add_message("game over", function()
 					camera()
 					_init()
-				end)
+				end)				
 			end
+
 		end
 	end,
 
@@ -617,7 +628,7 @@ function player:init(type, index)
 		self.weapon = weapons.wizard[1]
 		self.armour = armour[1]
 		self.sprite = 2
-		self.max_bp = 4
+		self.max_bp = 1
 		self.mp = 8
 	end
 
