@@ -101,7 +101,7 @@ function get_mission(num)
 				{22, 22, 2, 1},
 				{21, 22, 2, 1}
 			},
-			end_tile = {20,18}
+			end_tile = {6,18}
 		}
 	end
 	return l_mission
@@ -285,11 +285,22 @@ game_state={
 	end,
 
 	update=function()
-		if gui:active_messages() then 
-			gui:update()
+		if gui.active_messages() then 
+			gui.update()
 		else
+			
 			--update only the current actor
 			actors[actor_index]:update()
+		end
+
+		if actors[1] != nil then
+			if actors[1].alive == false and actors[2].alive == false then
+				gui.add_message("your team has been killed")
+				gui.add_message("game over", function()
+					camera()
+					_init()
+				end)
+			end
 		end
 	end,
 
@@ -308,7 +319,7 @@ game_state={
 			ch:draw()
 		end
 		
-		gui:draw()
+		gui.draw()
 	end
 }
 
@@ -321,9 +332,10 @@ player_stats_state = {
 		camera()
 		rectfill(0,0,128,128, 4)
 		local p = actors[actor_index]
+		--todo add weapon and armour names
 		print("name: " .. p.name, 10, 10, 7)
-		print("att: " .. p.ap, 10, 20, 7)
-		print("def: " .. p.dp, 50, 20, 7)
+		print("att: " .. p.weapon[2], 10, 20, 7)
+		print("def: " .. p.armour[2], 50, 20, 7)
 		print("body: " .. p.bp, 90, 20, 7)
 		print("magic: " .. p.mp, 10, 30, 7)
 		print("shared gold: " .. gold, 50, 30, 7)
@@ -626,7 +638,11 @@ function player:init(type, index)
 end
 
 function player:update()
-	
+	if self.alive == false then
+		actor_index += 1
+		do return end
+	end
+
 	--user should be able to bail from any state into main menu
 	if (btnp(4)) then
 		if self.state == "move_or_action" then 
