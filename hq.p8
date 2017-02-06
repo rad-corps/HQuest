@@ -348,8 +348,22 @@ game_state={
 		end
 		
 		gui.draw()
+
+		draw_active_actor_stats()
 	end
 }
+
+function draw_active_actor_stats()
+	local a = actors[actor_index]
+	local a_str = "bp:" .. a.bp
+	if a.human != nil then
+		a_str = a_str .. " mp:" .. a.mp
+	end
+	camera()
+		print(a_str, 0, 0, 7)		
+	restore_camera()
+	 
+end
 
 player_stats_state = {
 	update = function()
