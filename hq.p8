@@ -299,7 +299,12 @@ game_state={
 			gui.update()
 		else			
 			--update only the current actor
-			actors[actor_index]:update()
+			if actors[actor_index].alive == true then
+				actors[actor_index]:update()
+			else
+				actor_index += 1
+			end
+
 		end
 
 		if actors[1] != nil then
@@ -1129,12 +1134,20 @@ function enemy:update()
 	
 	if self.path == nil and self.ml > 0 then
 		self.paths = {}
-		self:calcpath(1)
-		self:calcpath(2)
+		if actors[1].alive == true then
+			self:calcpath(1)
+		end
+		if actors[2].alive == true then
+			self:calcpath(2)
+		end
 		self.player_index = 2
 
 		--determine shortest of the two paths
-		if #self.paths[1] < #self.paths[2] then
+		if self.paths[2] == nil then 
+			self.player_index = 1
+		elseif self.paths[1] == nil then 
+			self.player_index = 2
+		elseif #self.paths[1] < #self.paths[2] then
 			self.player_index = 1
 		end
 
