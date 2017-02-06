@@ -2,6 +2,8 @@ pico-8 cartridge // http://www.pico-8.com
 version 8
 __lua__
 
+
+
 function get_mission(num)
 	local l_mission = {}
 	if num == 2 then 
@@ -114,6 +116,35 @@ function _init()
 	actors={}
 
 	enemy_type = {}
+
+	equipment_table = {
+		weapons = {
+			barbarian = {
+				{"long sword", 3, 0},
+				{"power sword", 4, 300},
+				{"gold sword", 6, 1000},
+				{"death sword", 8, 3000}
+			},
+			dwarf = {
+				{"short sword",2,0},
+				{"axe", 3, 300},
+				{"power axe", 5, 1000},
+				{"magic axe", 6, 3000} --double str magic
+			},
+			wizard = {
+				{"staff", 1, 0},
+				{"mighty staff", 2, 300},
+				{"magic staff", 2, 1000}, --half cost magic
+				{"wizard weapon", 3, 3000}, --half cost magic, double str
+			}
+		},
+		armour = {
+			{"tunic", 1, 300},
+			{"iron armour", 2, 1000},
+			{"graphite armour", 4, 3000},
+			{"golden armour", 6, 10000}
+		}
+	}
  
 	--name, hp, ap
 	add(enemy_type, {"goblin",10,2,1,1,1, 16})
@@ -211,7 +242,7 @@ character_select_state={
 
 	player_types = {
 			{"barbarian", "strong in combat", "no magic ability"},
-			{"elf", "a good fighter", "some magic ability"},
+			{"dwarf", "a good fighter", "some magic ability"},
 			{"wizard", "weak defense and combat", "strong magic"}
 	},
 
@@ -548,27 +579,32 @@ function player:init(type, index)
 	--todo each player type should have a different sprite	
 	self.index = index
 
+	self.name = type
+	self.type = type
+	self.human = true
+	self.alive = true
+
 	printh(type)
 
+	local weapons = equipment_table.weapons
+	local armour = equipment_table.armour
+
 	if type == "barbarian" then
-		printh("sprite 0")
+		self.weapon = weapons.barbarian[1]
+		self.armour = armour[2]
 		self.sprite = 0
-		self.ap = 3
-		self.dp = 2
 		self.max_bp = 8
 		self.mp = 0
-	elseif type == "elf" then
-		printh("sprite 1")
+	elseif type == "dwarf" then
+		self.weapon = weapons.dwarf[1]
+		self.armour = armour[2]
 		self.sprite = 1
-		self.ap = 2
-		self.dp = 2
 		self.max_bp = 6
 		self.mp = 4
 	elseif type == "wizard" then
-		printh("sprite 2")
+		self.weapon = weapons.wizard[1]
+		self.armour = armour[1]
 		self.sprite = 2
-		self.ap = 1
-		self.dp = 2
 		self.max_bp = 4
 		self.mp = 8
 	end
@@ -583,11 +619,7 @@ function player:init(type, index)
 	self.action_used = false
 	self.dice_rolled = false
 
-	self.name = type
-	self.type = type
-	
-	self.human = true
-	self.alive = true
+
 	--self.g = 0
 	self.items = {}
 	self.bp = self.max_bp
@@ -1160,7 +1192,6 @@ function item_num_to_string(item_num)
 	return ret
 end
 
---todo change to closed_chest....
 function closed_chest_at_surrounding_location(x,y)
 	local ret = nil
 	if (ret == nil) ret = closed_chest_at_location(x+1, y)
@@ -1200,6 +1231,13 @@ function do_actor_attack(attacker, defender)
 	local defender_def_dice_sides = 2
 	if defender.human == nil then
 		defender_def_dice_sides = 1
+	else
+		defender.dp = defender.armour[2]
+	end
+
+	--todo work out ap and dp based on equipment
+	if attacker.human != nil then
+		attacker.ap = attacker.weapon[2]
 	end
 
 	--get number of attacker's attack dice
@@ -1210,6 +1248,8 @@ function do_actor_attack(attacker, defender)
 
 	local attack_hits = 0
 	local defence_hits = 0
+
+	printh("num attack dice = " .. attack_dice)
 
 	--roll both sets
 	for i=1, attack_dice do	
@@ -1222,6 +1262,8 @@ function do_actor_attack(attacker, defender)
 		end
 	end
 	gui.add_message(attacker.name .. " rolls " .. attack_hits .. " attack")
+
+	printh("num attack dice = " .. defence_dice)
 
 	for i=1, defence_dice do
 		local defence_die = flr(rnd(6))
