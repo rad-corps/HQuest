@@ -120,7 +120,7 @@ function _init()
 
 	printh("num actors = " .. #actors)
 
-	enemy_type = {}
+	
 
 	equipment_table = {
 		{--weapons
@@ -154,23 +154,28 @@ function _init()
 			{"magic restore",2,250, "restores 4 magic points"}
 		}
 	}
+	
+	enemy_type = {--name, hp, ap
+	{"goblin",10,2,1,1,1, 16},
+	{"skeleton",6,2,2,1,0, 17},
+	{"zombie",5,2,3,1,0,18},
+	{"orc",8,3,2,1,2,19},
+	{"fimir",6,3,3,2,3,20},
+	{"mummy",4,3,4,2,0,21},
+	{"chaos warrior",7,4,4,3,3,22},
+	{"gargoyle",6,4,5,3,4,23},
+	}
  
-	--name, hp, ap
-	add(enemy_type, {"goblin",10,2,1,1,1, 16})
-	add(enemy_type, {"skeleton",6,2,2,1,0, 17})
-	add(enemy_type, {"zombie",5,2,3,1,0,18})
-	add(enemy_type, {"orc",8,3,2,1,2,19})
-	add(enemy_type, {"fimir",6,3,3,2,3,20})
-	add(enemy_type, {"mummy",4,3,4,2,0,21})
-	add(enemy_type, {"chaos warrior",7,4,4,3,3,22})
-	add(enemy_type, {"gargoyle",6,4,5,3,4,23})
+	
 
+ --6557 - 6545
 	--string, type, magic cost
-	spell_list = {}
-	add(spell_list, {"heal",1,2,})
-	add(spell_list, {"fire",2,2,})
-	add(spell_list, {"sleep",3,1,})
-	add(spell_list, {"protect",4,2,})
+	spell_list = {
+	{"heal",1,2,},
+	{"fire",2,2,},
+	{"sleep",3,1,},
+ {"protect",4,2,}
+	}
 
 	wallid = 32
 	actor_index=1
