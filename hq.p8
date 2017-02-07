@@ -36,12 +36,12 @@ function get_mission(num)
 				{17,7}
 			},
 			chest_data = { --x,y,type,amount/strength
-				{2, 22, 2, 0},
-				{4, 22, 3, 0},
+				{2, 19, 1, 300},
+				{4, 19, 1, 1600},
 				{22, 22, 1, 50},
 				{21, 22, 1, 100}
 			},
-			end_tile = {6,18}
+			end_tile = {3,21}
 		}
 	elseif num == 1 then 
 		l_mission = {
@@ -96,12 +96,12 @@ function get_mission(num)
 				{17,7}
 			},
 			chest_data = { --x,y,type,amount/strength
-				{2, 22, 2, 1},
-				{4, 22, 2, 1},
+				{2, 19, 1, 300},
+				{4, 19, 1, 1600},
 				{22, 22, 2, 1},
 				{21, 22, 2, 1}
 			},
-			end_tile = {6,18}
+			end_tile = {3,21}
 		}
 	end
 	return l_mission
@@ -318,17 +318,31 @@ game_state={
 			end
 
 		end
-
-		if actors[1] != nil then
-			if actors[1].alive == false and actors[2].alive == false and game_over == false then
-				game_over = true
-				gui.add_message("your team has been killed")
-				gui.add_message("game over", function()
-					camera()
-					_init()
-				end)				
+	
+		--game over condition
+		if actors[1].alive == false and actors[2].alive == false and game_over == false then
+			game_over = true
+			gui.add_message("your team has been killed")
+			gui.add_message("game over", function()
+				camera()
+				_init()
+			end)				
+		else --end level condition
+			local p1 = actors[1]
+			local p2 = actors[2]
+			local at_end = true
+			if p1.alive and fget(mget(p1.x, p1.y)) != 1 then
+				at_end = false
 			end
-
+			if p2.alive and fget(mget(p2.x, p2.y)) != 1 then
+				at_end = false
+			end
+			if at_end then
+				gui.add_message("advance to next level", function()
+					shop_state.init()
+					app_state = shop_state
+					end)
+			end
 		end
 	end,
 
@@ -360,10 +374,27 @@ function draw_active_actor_stats()
 		a_str = a_str .. " mp:" .. a.mp
 	end
 	camera()
-		print(a_str, 0, 0, 7)		
+	print(a_str, 0, 0, 7)		
 	restore_camera()
-	 
 end
+
+shop_state = {
+	player_num = 1,
+
+	init = function()
+		shop_state.player_num = 1
+		camera()
+	end,
+
+	update = function()
+
+	end,
+
+	draw = function()
+		rectfill(0,0,128,128,12)
+		print("shop", 64,0,7)
+	end
+}
 
 player_stats_state = {
 	update = function()
@@ -443,6 +474,14 @@ gui = {
 	
 	add_message = function (msg, callback)
 		local gui_msg = {msg, callback}
+
+		--dont ever add a duplicate message
+		for m in all(gui.messages) do 
+			if m[1] == msg then
+				do return end
+			end
+		end
+
 		add(gui.messages, gui_msg)
 	end,
 
