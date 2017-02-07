@@ -311,6 +311,7 @@ game_state={
 	end,
 
 	update=function()
+
 		if gui.active_messages() then 
 			gui.update()
 		else			
@@ -441,9 +442,14 @@ shop_state = {
 
 	draw = function()
 		local p_num = shop_state.player_num
-		local rect_colour = 12
-		if (p_num == 2) rect_colour = 14
+		local rect_colour = 13
+		if (p_num == 2) rect_colour = 12
 		rectfill(0,0,128,128,rect_colour)
+		rectfill(5+2,5+2, 128-5+2, 20+2, 13)
+		rectfill(5,5, 128-5, 20, 1)
+		
+		rectfill(5,29, 128-5, 43, 1)
+		rectfill(5,45, 128-5, 51, 9)
 		
 		local p = actors[p_num]
 		local b_sel = shop_state.browsing_selection
@@ -481,7 +487,7 @@ shop_state = {
 		--modify the y_selection in the shop_strings array
 		shop_strings[7 + y_sel] = "\x8b" .. shop_strings[7 + y_sel] .. "\x91"
 
-		local y_offset = 5
+		local y_offset = 6
 		color(7)
 		for str in all(shop_strings) do
 			local x_pos = 64 - #str * 2
