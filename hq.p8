@@ -123,31 +123,35 @@ function _init()
 	enemy_type = {}
 
 	equipment_table = {
-		weapons = {
-			barbarian = {
+		{--weapons
+			{--barbarian
 				{"long sword", 3, 0},
 				{"power sword", 4, 300},
 				{"gold sword", 6, 1000},
 				{"death sword", 8, 3000}
 			},
-			dwarf = {
+			{ --dwarf
 				{"short sword",2,0},
 				{"axe", 3, 300},
 				{"power axe", 5, 1000},
 				{"magic axe", 6, 3000} --double str magic
 			},
-			wizard = {
+			{ --wizard
 				{"staff", 1, 0},
 				{"mighty staff", 2, 300},
 				{"magic staff", 2, 1000}, --half cost magic
 				{"wizard weapon", 3, 3000}, --half cost magic, double str
 			}
 		},
-		armour = {
+		{ --armour
 			{"tunic", 1, 300},
 			{"iron armour", 2, 1000},
 			{"graphite armour", 4, 3000},
 			{"golden armour", 6, 10000}
+		},
+		{ --items
+			{"heal potion",1,150},
+			{"magic restore",2,250}
 		}
 	}
  
@@ -379,12 +383,14 @@ function draw_active_actor_stats()
 end
 
 shop_state = {
-	player_num = 1,
-	item_num = 1,
-	browsing_selection = 1,
-	y_selection = 1,
 
 	init = function()
+		shop_state.categories = { 
+			"weapons",
+			"armour",
+			"items"
+		}
+
 		shop_state.player_num = 1
 		shop_state.item_num = 1
 		shop_state.browsing_selection = 1
@@ -404,61 +410,67 @@ shop_state = {
 
 		if y_sel == 1 then --browse
 			shop_state.browsing_selection += x_val
+			shop_state.browsing_selection = max(shop_state.browsing_selection, 1)
+			shop_state.browsing_selection = min(#shop_state.categories, shop_state.browsing_selection)
 		elseif y_sel == 2 then --item
+
+			local list_sz = 1
+			local b_sel = shop_state.browsing_selection
+
+			if b_sel == 1 then --weapon
+				list_sz = #equipment_table[b_sel][shop_state.player_num]
+			else --armour or item
+				list_sz = #equipment_table[b_sel]
+			end
+
 			shop_state.item_num += x_val
+			shop_state.item_num = max(shop_state.item_num, 1)
+			shop_state.item_num = min(list_sz, shop_state.item_num)
+		elseif y_sel == 3 then --player num
+			shop_state.player_num += x_val
+			shop_state.player_num = max(shop_state.player_num, 1)
+			shop_state.player_num = min(2, shop_state.player_num)
 		end
 	end,
 
 	draw = function()
-		rectfill(0,0,128,128,12)
-
 		local p_num = shop_state.player_num
+		local rect_colour = 12
+		if (p_num == 2) rect_colour = 14
+		rectfill(0,0,128,128,rect_colour)
+		
 		local p = actors[p_num]
+		printh(p.type)
 		local b_sel = shop_state.browsing_selection
 		local i_num = shop_state.item_num
 		local y_sel = shop_state.y_selection
-		local w_tbl = equipment_table.weapons
-		local a_tbl = equipment_table.armour
+		local w_tbl = equipment_table[1]
+		local a_tbl = equipment_table[2]
 
-		local items_for_sale = {
-			{"weapons", {}},
-			{"armours", {}},
-			{"items", {}}
-		}
-		
-		--get the correct weapons table
-		if p.type == "barbarian" then
-			w_tbl = w_tbl.barbarian
-		elseif p.type == "dwarf" then
-			w_tbl = w_tbl.dwarf
-		else
-			w_tbl = w_tbl.wizard
+		local browsing_item = {}
+
+		if b_sel == 1 then --weapon
+			browsing_item = equipment_table[b_sel][p.type][i_num]
+		else --armour or item
+			browsing_item = equipment_table[b_sel][i_num]
 		end
 
-		for w in all(w_tbl) do
-			add(items_for_sale[1][2], w)
-		end
-
-		for a in all(a_tbl) do
-			add(items_for_sale[2][2], a)
-		end
-
-		local browsing_item = items_for_sale[b_sel][2][i_num]
 
 		local shop_strings = {
-			"shop",
+			"current weapon: " .. p.weapon[1],
+			"current armour: " .. p.armour[1],
+			"gold: " .. gold,
 			"-------------------",
-			"shopping for player " .. p_num,
-			"current weapon: " .. actors[p_num].weapon[1],
-			"current armour: " .. actors[p_num].armour[1],
-			"-------------------",
-			"browsing: " .. items_for_sale[b_sel][1],
+			"browsing: " .. shop_state.categories[b_sel],
 			"buy:" .. browsing_item[1],
-			"next player"
+			"player " .. p_num
+			
+			--todo wip
+
 		}
 
 		--modify the y_selection in the shop_strings array
-		shop_strings[6 + y_sel] = "-" .. shop_strings[6 + y_sel] .. "-"
+		shop_strings[4 + y_sel] = "\x8b" .. shop_strings[4 + y_sel] .. "\x91"
 
 		local y_offset = 10
 		color(7)
@@ -747,34 +759,35 @@ function player:init(type, index)
 	self.index = index
 
 	self.name = type
-	self.type = type
 	self.human = true
 	self.alive = true
 
 	printh(type)
 
-	local weapons = equipment_table.weapons
-	local armour = equipment_table.armour
+	local weapons = equipment_table[1]
+	local armour = equipment_table[2]
 
 	if type == "barbarian" then
-		self.weapon = weapons.barbarian[1]
 		self.armour = armour[2]
 		self.sprite = 0
 		self.max_bp = 8
-		self.mp = 0
+		self.mp = 0 
+		self.type = 1
 	elseif type == "dwarf" then
-		self.weapon = weapons.dwarf[1]
 		self.armour = armour[2]
 		self.sprite = 1
 		self.max_bp = 6
 		self.mp = 4
-	elseif type == "wizard" then
-		self.weapon = weapons.wizard[1]
+		self.type = 2
+	elseif type == "wizard" then		
 		self.armour = armour[1]
 		self.sprite = 2
 		self.max_bp = 1
 		self.mp = 8
+		self.type = 3
 	end
+
+	self.weapon = weapons[self.type][1]
 
 	self.ml = 0
 	self.x = 0
