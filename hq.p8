@@ -380,19 +380,93 @@ end
 
 shop_state = {
 	player_num = 1,
+	item_num = 1,
+	browsing_selection = 1,
+	y_selection = 1,
 
 	init = function()
 		shop_state.player_num = 1
+		shop_state.item_num = 1
+		shop_state.browsing_selection = 1
+		shop_state.y_selection = 1
 		camera()
 	end,
 
 	update = function()
+		if (btnp(3)) shop_state.y_selection += 1
+		if (btnp(2)) shop_state.y_selection -= 1
+		
+		local x_val = 0
+		if (btnp(0)) x_val -= 1
+		if (btnp(1)) x_val += 1
 
+		local y_sel = shop_state.y_selection
+
+		if y_sel == 1 then --browse
+			shop_state.browsing_selection += x_val
+		elseif y_sel == 2 then --item
+			shop_state.item_num += x_val
+		end
 	end,
 
 	draw = function()
 		rectfill(0,0,128,128,12)
-		print("shop", 64,0,7)
+
+		local p_num = shop_state.player_num
+		local p = actors[p_num]
+		local b_sel = shop_state.browsing_selection
+		local i_num = shop_state.item_num
+		local y_sel = shop_state.y_selection
+		local w_tbl = equipment_table.weapons
+		local a_tbl = equipment_table.armour
+
+		local items_for_sale = {
+			{"weapons", {}},
+			{"armours", {}},
+			{"items", {}}
+		}
+		
+		--get the correct weapons table
+		if p.type == "barbarian" then
+			w_tbl = w_tbl.barbarian
+		elseif p.type == "dwarf" then
+			w_tbl = w_tbl.dwarf
+		else
+			w_tbl = w_tbl.wizard
+		end
+
+		for w in all(w_tbl) do
+			add(items_for_sale[1][2], w)
+		end
+
+		for a in all(a_tbl) do
+			add(items_for_sale[2][2], a)
+		end
+
+		local browsing_item = items_for_sale[b_sel][2][i_num]
+
+		local shop_strings = {
+			"shop",
+			"-------------------",
+			"shopping for player " .. p_num,
+			"current weapon: " .. actors[p_num].weapon[1],
+			"current armour: " .. actors[p_num].armour[1],
+			"-------------------",
+			"browsing: " .. items_for_sale[b_sel][1],
+			"buy:" .. browsing_item[1],
+			"next player"
+		}
+
+		--modify the y_selection in the shop_strings array
+		shop_strings[6 + y_sel] = "-" .. shop_strings[6 + y_sel] .. "-"
+
+		local y_offset = 10
+		color(7)
+		for str in all(shop_strings) do
+			print(str, 64 - #str * 2,y_offset)
+			y_offset += 10
+		end
+
 	end
 }
 
