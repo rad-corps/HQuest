@@ -166,9 +166,6 @@ function _init()
 	{"gargoyle",6,4,5,3,4,23},
 	}
  
-	
-
- --6557 - 6545
 	--string, type, magic cost
 	spell_list = {
 	{"heal",1,2,},
@@ -263,8 +260,8 @@ main_menu_state={
 
 character_select_state={
 
-	selection = 1,
-	player_num = 1,
+	--selection = 1,
+	--player_num = 1,
 	
 	init=function ()
 		character_select_state.selection = 1
