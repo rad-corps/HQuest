@@ -36,7 +36,7 @@ function get_mission(num)
 				{17,7}
 			},
 			chest_data = { --x,y,type,amount/strength
-				{2, 19, 1, 300},
+				{2, 19, 1, 5000},
 				{4, 19, 1, 1600},
 				{22, 22, 1, 50},
 				{21, 22, 1, 100}
@@ -125,22 +125,22 @@ function _init()
 	equipment_table = {
 		{--weapons
 			{--barbarian
-				{"long sword", 3, 0, "3 attack dice"},
-				{"power sword", 4, 300, "4 attack dice"},
-				{"gold sword", 6, 1000, "6 attack dice"},
-				{"death sword", 8, 3000, "8 attack dice"}
+				{"long sword", 3, 0, "3 attack"},
+				{"power sword", 4, 300, "4 attack"},
+				{"gold sword", 6, 1000, "6 attack"},
+				{"death sword", 8, 3000, "8 attack"}
 			},
 			{ --dwarf
-				{"short sword",2,0, "2 attack dice"},
-				{"axe", 3, 300, "3 attack dice"},
-				{"power axe", 5, 1000, "5 attack dice"},
-				{"magic axe", 6, 3000, "6 attack dice", "x2 str magic"} --double str magic
+				{"short sword",2,0, "2 attack"},
+				{"axe", 3, 300, "3 attack"},
+				{"power axe", 5, 1000, "5 attack"},
+				{"magic axe", 6, 3000, "6 attack 1/2 cost magic"} --double str magic
 			},
 			{ --wizard
-				{"staff", 1, 0, "1 attack die"},
-				{"mighty staff", 2, 300, "2 attack dice"},
-				{"magic staff", 2, 1000, "2 attack dice", "1/2 cost magic"}, --half cost magic
-				{"wizard weapon", 3, 3000, "3 attack dice", "1/2 cost magic | x2 str magic"}, --half cost magic, double str
+				{"staff", 1, 0, "1 attack"},
+				{"mighty staff", 2, 300, "2 attack"},
+				{"magic staff", 2, 1000, "2 attack x2 magic str"}, --half cost magic
+				{"wizard weapon", 3, 3000, "3 attack x4 magic str"}, --half cost magic, double str
 			}
 		},
 		{ --armour
@@ -402,13 +402,17 @@ shop_state = {
 	end,
 
 	update = function()
-		if (btnp(3)) shop_state.y_selection += 1
-		if (btnp(2)) shop_state.y_selection -= 1
 		
-		shop_state.y_selection = max(1, shop_state.y_selection) --dont go below 1
-		if (shop_state.y_selection == 3) shop_state.y_selection = 5
-		if (shop_state.y_selection == 4) shop_state.y_selection = 2
-		if (shop_state.y_selection == 6) shop_state.y_selection = 5
+		if (btnp(3)) then --down
+			shop_state.y_selection += 1
+			if (shop_state.y_selection == 3) shop_state.y_selection = 5
+			shop_state.y_selection = min(shop_state.y_selection, 6)
+		end
+		if (btnp(2)) then  --up
+			shop_state.y_selection -= 1
+			if (shop_state.y_selection == 4) shop_state.y_selection = 2
+			shop_state.y_selection = max(1, shop_state.y_selection) --dont go below 1	
+		end
 
 		local x_val = 0
 		if (btnp(0)) x_val -= 1
@@ -435,7 +439,7 @@ shop_state = {
 			shop_state.item_num += x_val
 			shop_state.item_num = max(shop_state.item_num, 1)
 			shop_state.item_num = min(list_sz, shop_state.item_num)
-		elseif y_sel == 5 then --player num
+		elseif y_sel == 6 then --player num
 			shop_state.player_num += x_val
 			shop_state.player_num = max(shop_state.player_num, 1)
 			shop_state.player_num = min(2, shop_state.player_num)
@@ -444,14 +448,23 @@ shop_state = {
 
 	draw = function()
 		local p_num = shop_state.player_num
-		local rect_colour = 13
-		if (p_num == 2) rect_colour = 12
+		local rect_colour = 5
+		if (p_num == 2) rect_colour = 13
 		rectfill(0,0,128,128,rect_colour)
-		rectfill(5+2,5+2, 128-5+2, 20+2, 13)
-		rectfill(5,5, 128-5, 20, 1)
 		
-		rectfill(5,29, 128-5, 43, 1)
-		rectfill(5,45, 128-5, 51, 9)
+		--current weapon and armour
+		rectfill(5,4, 128-5, 53, 1)		
+
+		--buy menu
+		rectfill(5,54, 128-5, 103, 2)		
+
+		--player menu
+		rect_colour = 13
+		if (p_num == 2) rect_colour = 12
+		rectfill(5,104, 128-5, 122, rect_colour)	
+
+		--gold
+		--rectfill(5,44, 128-5, 52, 9)
 		
 		local p = actors[p_num]
 		local b_sel = shop_state.browsing_selection
@@ -468,34 +481,35 @@ shop_state = {
 			browsing_item = equipment_table[b_sel][i_num]
 		end
 
-		if (browsing_item[5] == nil) browsing_item[5] = ""
-
-
 		local shop_strings = {
 			"current weapon: " .. p.weapon[1],
 			p.weapon[4],
-			p.weapon[5],
 			"current armour: " .. p.armour[1],
 			p.armour[4],
 			"gold: " .. gold,
-			"-------------------",
 			shop_state.categories[b_sel],
 			browsing_item[1],
 			browsing_item[4],
-			browsing_item[5],
+			browsing_item[3] .. " gold",
+			"buy",
 			"player " .. p_num
 		}
 
 		--modify the y_selection in the shop_strings array
-		shop_strings[7 + y_sel] = "\x8b" .. shop_strings[7 + y_sel] .. "\x91"
+		if y_sel == 5 then 
+			shop_strings[5 + y_sel] = "\x97" .. shop_strings[5 + y_sel] .. "\x97"
+		else
+			shop_strings[5 + y_sel] = "\x8b" .. shop_strings[5 + y_sel] .. "\x91"
+		end
 
 		local y_offset = 6
 		color(7)
-		for str in all(shop_strings) do
+		for i=1, #shop_strings do
+			local str = shop_strings[i]
 			local x_pos = 64 - #str * 2
-			if(sub(str, 1, 1) == "\x8b") x_pos -= 4
+			if(5 + y_sel == i) x_pos -= 4
 			print(str, x_pos,y_offset)
-			y_offset += 8
+			y_offset += 10
 		end
 
 		--draw player sprite
@@ -503,7 +517,7 @@ shop_state = {
 			pal(5, 13, 0)
 			pal(13, 5, 0)
 		end
-		sspr(p.sprite * 8, 0, 8, 8, 64 - 8, 105, 16, 16)
+		sspr(p.sprite * 8, 0, 8, 8, 95, 105, 16, 16)
 		pal()
 
 	end
