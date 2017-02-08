@@ -920,6 +920,8 @@ function player:reset()
 	self.move_used = false
 	self.action_used = false
 	self.movement_dice_rolled = false
+	self.protection = 0
+	self.sleep = 0
 end
 
 function player:initial_update()
@@ -1331,13 +1333,11 @@ function player:cast_spell(spell, spell_receiver)
 					end)
 			end
 		elseif spell[1] == "sleep" then --sleep
-			gui.add_message("not yet implemented")
-			self.mp += spell[3]
-			self.action_used = false
-		elseif spell[1] == "protection" then --protection
-			gui.add_message("not yet implemented")
-			self.mp += spell[3]
-			self.action_used = false
+			spell_receiver.sleep = magic_multiplier
+			gui.add_message("sleep cast on " .. spell_receiver.name)
+		elseif spell[1] == "protect" then --protection
+			spell_receiver.protection = 2 * magic_multiplier
+			gui.add_message("protect cast on " .. spell_receiver.name)
 		end
 		self.state = "move_or_action"
 	else
@@ -1433,6 +1433,8 @@ function enemy:init(en)
 	self.max_bp = self.bp
 	self.mp = ed[6]
 	self.sprite = ed[7]
+	self.protection = 0
+	self.sleep = 0
 end
 
 function increment_actor()
@@ -1624,6 +1626,7 @@ function do_actor_attack(attacker, defender)
 
 	--get number of defender's defence dice
 	local defence_dice = defender.dp
+	defence_dice += defender.protection
 
 	local attack_hits = 0
 	local defence_hits = 0
@@ -1642,7 +1645,7 @@ function do_actor_attack(attacker, defender)
 	end
 	gui.add_message(attacker.name .. " rolls " .. attack_hits .. " attack")
 
-	printh("num attack dice = " .. defence_dice)
+	printh("num defense dice = " .. defence_dice)
 
 	for i=1, defence_dice do
 		local defence_die = flr(rnd(6))
@@ -1657,8 +1660,14 @@ function do_actor_attack(attacker, defender)
 		local damage = attack_hits - defence_hits
 		defender.bp -= damage
 		gui.add_message(defender.name .. " loses " .. damage .. " bp")
+		
+		if defender.protection > 0 then
+			defender.protection = 0
+			gui.add_message(defender.name .. "'s protect lost")
+		end
 		if defender.bp > 0 then
 			gui.add_message(defender.name .. " has " .. defender.bp .. " bp left")
+
 		elseif defender.bp <= 0 then
 
 			gui.add_message(defender.name .. " has been killed", function()
@@ -1669,6 +1678,8 @@ function do_actor_attack(attacker, defender)
 	else
 		if attack_hits == 0 then 
 			gui.add_message(attacker.name .. " misses")
+		elseif defender.protection > 0 then
+			gui.add_message(defender.name .. " was protected")
 		else
 			gui.add_message(defender.name .. " dodged attack")
 		end
