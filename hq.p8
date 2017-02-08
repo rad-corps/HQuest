@@ -871,7 +871,7 @@ function player:reset()
 	self.state = "move_or_action"
 	self.move_used = false
 	self.action_used = false
-	self.dice_rolled = false
+	self.movement_dice_rolled = false
 end
 
 function player:update()
@@ -927,7 +927,7 @@ function player:do_give_menu()
 end
 
 function player:rollmovementdice()
-	self.dice_rolled = true
+	self.movement_dice_rolled = true
 	return flr(rnd(6)) + flr(rnd(6)) + 2
 end
 
@@ -961,11 +961,11 @@ end
 
 function player:move()
 
-	if self.dice_rolled == false then
+	if self.movement_dice_rolled == false then
 		self.ml = player:rollmovementdice()
 		self.dice = self.ml
 		gui.add_message("player rolled: " .. self.ml)	
-		self.dice_rolled = true		
+		self.movement_dice_rolled = true		
 		do return end
 	end
 
@@ -1071,9 +1071,10 @@ function player:move()
  
 	 --decrement movesleft if player moved
 	if self.x ~= prevx or self.y ~= prevy then
-		self.ml -= 1
+		self.ml -= 1		
 		reveal_rooms(self.x, self.y)
 	end	
+	if (self.ml == 0) self:set_move_used()
 end
 
 function player:check_simple_collision()
@@ -1113,12 +1114,48 @@ function player:do_spell_select()
 	end
 end
 
+function player:next_menu_selection(dir)
+	if dir > 0 then
+		if self.move_used == true and self.menu_selection == 1 then
+			self.menu_selection = 2
+		end
+		if self.action_used == true and (self.menu_selection == 2 or self.menu_selection == 3) then 
+			self.menu_selection = 4
+		end
+	elseif dir < 0 then
+		if self.action_used == true and (self.menu_selection == 2 or self.menu_selection == 3) then 
+			self.menu_selection = 1
+		end
+		if self.move_used == true and self.menu_selection == 1 then
+			self.menu_selection = #move_or_action_menu
+		end
+	end	
+end
+
+function player:set_move_used()
+	self.move_used = true
+	self:next_menu_selection(1)
+end
+
+function player:set_action_used()
+	self.action_used = true
+	self:next_menu_selection(1)
+end
+
 function player:do_move_or_action_menu()
 
-	if (btnp(0)) self.menu_selection -= 1
-	if (btnp(1)) self.menu_selection += 1
+	local x_sel = 0
+	if (btnp(0)) x_sel -= 1
+	if (btnp(1)) x_sel += 1
+
+	self.menu_selection += x_sel
+
+	--wrap around
 	if self.menu_selection < 1 then self.menu_selection = #move_or_action_menu end
 	if self.menu_selection > #move_or_action_menu then self.menu_selection = 1 end
+
+	--skip menu entries that have been used
+	self:next_menu_selection(x_sel)
 
 	if (btnp(5)) then
 		
@@ -1150,13 +1187,13 @@ function player:do_move_or_action_menu()
 
 		elseif self.menu_selection == 6 then --end turn
 			increment_actor()
-			self.move_used = false
+			--self.move_used = false
 			self.action_used = false
 			self.menu_selection = 1
 			self.attack_selection = nil
 			self.adjacent_enemies = nil
-			self.dice_rolled = false
-
+			self.movement_dice_rolled = false
+			self.move_used = false
 		end
 	end
 end
@@ -1184,11 +1221,9 @@ function player:do_attack_menu()
 
 	if (btnp(5)) then --x attack enemy
 		self:attack_enemy()
-		self.action_used = true		
-		if self.dice_rolled == true then
-			printh("move used = true")
-			self.ml = 0
-			self.move_used = true
+		self:set_action_used()
+		if self.movement_dice_rolled == true then
+			self:set_move_used()
 		end
 		self.state = "move_or_action"
 	end		
@@ -1208,7 +1243,7 @@ end
 function player:cast_spell(spell, spell_receiver)
 	if self.mp >= spell[2] then
 		self.mp -= spell[2]
-		self.action_used = true
+		self:set_action_used()
 		if spell[1] == "heal" then --heal
 			local old_bp = spell_receiver.bp
 			spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
