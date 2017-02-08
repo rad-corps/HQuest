@@ -823,7 +823,7 @@ function player:init(type, index)
 
 	self.name = type
 	self.human = true
-	self.alive = true
+	
 
 	printh(type)
 
@@ -855,17 +855,22 @@ function player:init(type, index)
 	self.ml = 0
 	self.x = 0
 	self.y = 0
+	self:reset()
+
+	--self.g = 0
+	self.items = {}
+	
+end
+
+function player:reset()
+	self.bp = self.max_bp
+	self.alive = true
 	self.menu_selection = 1
 	self.item_selection = 1
 	self.state = "move_or_action"
 	self.move_used = false
 	self.action_used = false
 	self.dice_rolled = false
-
-
-	--self.g = 0
-	self.items = {}
-	self.bp = self.max_bp
 end
 
 function player:update()
@@ -1564,11 +1569,14 @@ function init_mission(num)
 	init_rooms_array()
 
 	--restore map data
-	for col=1, map_w do
-		for row=1, map_h do
-			mset(col, row, mget(col + map_w, row))
-		end
-	end 
+	--for col=1, map_w do
+	--	for row=1, map_h do
+	--		mset(col, row, mget(col + map_w, row))
+	--	end
+	--end 
+	
+	--restore map data (clever dick way)
+	reload(0x2000, 0x2000, 0x1000)
 
 
 	mission = get_mission(num)	
@@ -1588,14 +1596,16 @@ function init_mission(num)
 	actors[2].x = mission.starting_point[1] + 1
 	actors[2].y = mission.starting_point[2]
 
-	--clear all actors except for players
+	--clear all actors except for players todo use less tokenz
 	local p1 = actors[1]
 	local p2 = actors[2]
-	p1.bp = p1.max_bp
-	p2.bp = p2.max_bp
+	p1:reset()
+	p2:reset()
 	actors = {}
 	add(actors,p1)
 	add(actors,p2)
+
+	actor_index = 1
 
 	--add the enemies
 	for en in all(mission.enemies) do
