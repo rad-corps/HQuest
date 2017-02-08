@@ -372,12 +372,12 @@ function draw_active_actor_stats()
 		printh("error in draw_active_actor_stats - actor_index" .. actor_index .. " is nil actor")
 		do return end
 	end
-	local a_str = "bp:" .. a.bp
+	local a_str = "body:" .. a.bp
 	if a.human != nil then
-		a_str = a_str .. " mp:" .. a.mp
+		a_str = a_str .. "  magic:" .. a.mp .. "  gold:" .. gold
 	end
 	camera()
-	print(a_str, 0, 0, 7)		
+	print(a_str, 64 - #a_str*2,0, 7)		
 	restore_camera()
 end
 
