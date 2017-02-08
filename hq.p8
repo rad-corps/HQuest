@@ -711,17 +711,24 @@ gui = {
 
 			if p.state == "attack_menu" or p.state == "spell_menu" then				
 				local en = p.adjacent_enemies[p.attack_selection]
-				if en.human == nil then
-					local en_x = en.x * 8 + 8
-					local en_y = en.y * 8 + 8
-					--todo draw enemy stats
-					rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + 34, 14)
-					rectfill(en_x, en_y, en_x + 40, en_y + 32, 2)
-					print(en.name, en_x + 2, en_y + 2, 7)
-					print("body: " .. en.bp .. "/" .. en.max_bp, en_x + 2, en_y + 10)
-					print("attack: " .. en.ap, en_x + 2, en_y + 18)
-					print("defens: " .. en.dp, en_x + 2, en_y + 26)
+				local rect1colour = 14
+				local rect2colour = 2
+				if en.human != nil then
+					en.dp = en.armour[2]
+					en.ap = en.weapon[2]
+					rect1colour = 13
+					rect2colour = 1
 				end
+				local en_x = en.x * 8 + 8
+				local en_y = en.y * 8 + 8
+				--todo draw enemy stats
+				rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + 34, rect1colour)
+				rectfill(en_x, en_y, en_x + 40, en_y + 32, rect2colour)
+				print(en.name, en_x + 2, en_y + 2, 7)
+				print("body: " .. en.bp .. "/" .. en.max_bp, en_x + 2, en_y + 10)
+				print("attack: " .. en.ap, en_x + 2, en_y + 18)
+				print("defens: " .. en.dp, en_x + 2, en_y + 26)
+				
 			end
 		end
 
@@ -1873,11 +1880,6 @@ function vectoindex(vec)
 end
 function maptoindex(x, y)
  return ((x+1) * map_w) + y
-end
-function indextomap(index)
- local x = (index-1)/map_w
- local y = index - (x*w)
- return {x,y}
 end
 
 -- pop the first element off a table (unused
