@@ -382,9 +382,9 @@ function draw_active_actor_stats()
 		printh("error in draw_active_actor_stats - actor_index" .. actor_index .. " is nil actor")
 		do return end
 	end
-	local a_str = "body:" .. a.bp
+	local a_str = "body:" .. a.bp .. "/" .. a.max_bp
 	if a.human != nil then
-		a_str = a_str .. "  magic:" .. a.mp .. "  gold:" .. gold
+		a_str = a_str .. "  magic:" .. a.mp .. "/" .. a.max_mp .. "  gold:" .. gold
 	end
 	camera()
 	print(a_str, 64 - #a_str*2,0, 7)		
@@ -845,19 +845,19 @@ function player:init(type, index)
 		self.armour = armour[2]
 		self.sprite = 0
 		self.max_bp = 8
-		self.mp = 0 
+		self.max_mp = 0 
 		self.type = 1
 	elseif type == "dwarf" then
 		self.armour = armour[2]
 		self.sprite = 1
 		self.max_bp = 6
-		self.mp = 4
+		self.max_mp = 4
 		self.type = 2
 	elseif type == "wizard" then		
 		self.armour = armour[1]
 		self.sprite = 2
 		self.max_bp = 4
-		self.mp = 8
+		self.max_mp = 8
 		self.type = 3
 	end
 
@@ -875,6 +875,7 @@ end
 
 function player:reset()
 	self.bp = self.max_bp
+	self.mp = self.max_mp
 	self.alive = true
 	self.menu_selection = 1
 	self.item_selection = 1
