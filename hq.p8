@@ -384,10 +384,12 @@ function draw_active_actor_stats()
 	end
 	local a_str = "body:" .. a.bp .. "/" .. a.max_bp
 	if a.human != nil then
-		a_str = a_str .. "  magic:" .. a.mp .. "/" .. a.max_mp .. "  gold:" .. gold
+		a_str = a_str .. " magic:" .. a.mp .. "/" .. a.max_mp .. " gold:" .. gold
 	end
 	camera()
-	print(a_str, 64 - #a_str*2,0, 7)		
+	rectfill(3,3,127,11,11)
+	rectfill(2,2,126,10,3)	
+	print(a_str, 64 - #a_str*2,4,7)		
 	restore_camera()
 end
 
@@ -661,28 +663,35 @@ gui = {
 
 	draw = function()
 		camera()
-		rectfill(0,117,128,128, 4)
-		local p = actors[actor_index]
+		rectfill(2,118,127,126, 6)
+		rectfill(0,117,126,125, 13)
 
+		local p = actors[actor_index]
+		local y_pos = 119
 		if #gui.messages > 0 then
 			local msg = gui.messages[1][1] .. " \x97"
-			print(msg, 64 - #msg*2 - 2, 120, 7)		
+			print(msg, 64 - #msg*2 - 2, y_pos, 7)		
 
 		elseif actor_index < 3 then --draw player gui
 					
 			if p.state == "move" then	
-				print("       moves left " .. p.ml, 10, 120, 7)		
+				print("       moves left " .. p.ml, 10, y_pos, 7)		
 			elseif p.state == "move_or_action" then					
-				print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, 120, 7)		
+				print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, y_pos, 7)		
 			elseif p.state == "spell_select" then
 				local spell_name = "\x8b" .. spell_list[p.spell_selection][1] .. "\x91"					
-				print(spell_name,  64 - #spell_name * 2, 120, 7)	
-			elseif p.state == "attack_menu" then			
-				print(" \x8bselect enemy\x91   attack\x97", 5, 120, 7)			
+				print(spell_name,  64 - #spell_name * 2, y_pos, 7)	
+			elseif p.state == "attack_menu" then --todo: win tokens back by combining attack and spell menu
+				print(" \x8bselect enemy\x91   attack\x97", 5, y_pos, 7)			
 				--get cell to hilight
 				local en = p.adjacent_enemies[p.attack_selection]			
 				restore_camera()
-				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
+				
+				local en_x = en.x * 8
+				local en_y = en.y * 8
+
+				rect(en_x, en_y, en_x + 7, en_y + 7, animator)			
+
 			elseif p.state == "spell_menu" then		
 				--todo say spell name	
 				local spell_name = spell_list[p.spell_selection][1]
@@ -698,6 +707,21 @@ gui = {
 				local mt = p:get_mate()
 				restore_camera()
 				rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
+			end
+
+			if p.state == "attack_menu" or p.state == "spell_menu" then				
+				local en = p.adjacent_enemies[p.attack_selection]
+				if en.human == nil then
+					local en_x = en.x * 8 + 8
+					local en_y = en.y * 8 + 8
+					--todo draw enemy stats
+					rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + 34, 14)
+					rectfill(en_x, en_y, en_x + 40, en_y + 32, 2)
+					print(en.name, en_x + 2, en_y + 2, 7)
+					print("body: " .. en.bp .. "/" .. en.max_bp, en_x + 2, en_y + 10)
+					print("attack: " .. en.ap, en_x + 2, en_y + 18)
+					print("defens: " .. en.dp, en_x + 2, en_y + 26)
+				end
 			end
 		end
 
@@ -956,10 +980,17 @@ function player:draw()
 
 	--centre camera 
 	if actor_index == self.index then
-		set_camera(self.x * 8 - 64, self.y * 8 - 64)
-		if animator2 == true then
-			rect(self.x * 8, self.y * 8, self.x * 8 + 7, self.y * 8 + 7, 11)
-		end				
+		
+		if self.state != "spell_menu" and self.state != "attack_menu" then
+			set_camera(self.x * 8 - 64, self.y * 8 - 64)
+			if animator2 == true then
+				rect(self.x * 8, self.y * 8, self.x * 8 + 7, self.y * 8 + 7, 11)
+			end				
+		else --in this case we want the camera on the active enemy
+			local en = self.adjacent_enemies[self.attack_selection]
+			set_camera(en.x * 8 - 64, en.y * 8 - 64)
+		end
+
 	end
 
 	if self.alive != true then
