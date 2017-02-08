@@ -936,6 +936,16 @@ function player:update()
 		do return end
 	end
 
+	if self.sleep >= 2 then
+		gui.add_message(self.name .. " is asleep")
+		self.sleep -= 1
+		increment_actor()
+		do return end
+	elseif self.sleep == 1 then
+		gui.add_message(self.name .. " woke up")
+		self.sleep -= 1
+	end
+
 	--user should be able to bail from any state into main menu
 	if (btnp(4)) then
 		if self.state == "move_or_action" then 
@@ -1333,7 +1343,7 @@ function player:cast_spell(spell, spell_receiver)
 					end)
 			end
 		elseif spell[1] == "sleep" then --sleep
-			spell_receiver.sleep = magic_multiplier
+			spell_receiver.sleep = magic_multiplier + 1
 			gui.add_message("sleep cast on " .. spell_receiver.name)
 		elseif spell[1] == "protect" then --protection
 			spell_receiver.protection = 2 * magic_multiplier
@@ -1461,6 +1471,17 @@ function enemy:update()
 	if (self.active == false) then 
 		self:finishmove()
 		do return end
+	end
+
+	--todo put this somewhere common for player and enemy
+	if self.sleep >= 2 then
+		gui.add_message(self.name .. " is asleep")
+		self.sleep -= 1
+		increment_actor()
+		do return end
+	elseif self.sleep == 1 then
+		gui.add_message(self.name .. " woke up")
+		self.sleep -= 1
 	end
 
 	timer += 1
