@@ -874,6 +874,12 @@ function player:reset()
 	self.movement_dice_rolled = false
 end
 
+function player:initial_update()
+	--are we next to an enemy? set self.menu_selection to 2
+	local en = self:get_adjacent_enemies()
+	if (#en > 0) self.menu_selection = 2
+end
+
 function player:update()
 	if self.alive == false then
 		increment_actor()
@@ -1134,12 +1140,12 @@ end
 
 function player:set_move_used()
 	self.move_used = true
-	self:next_menu_selection(1)
+	self:next_menu_selection(-1)
 end
 
 function player:set_action_used()
 	self.action_used = true
-	self:next_menu_selection(1)
+	self:next_menu_selection(-1)
 end
 
 function player:do_move_or_action_menu()
@@ -1371,6 +1377,10 @@ function increment_actor()
 
 	if actor_index > #actors then
 		actor_index = 1
+	end
+
+	if actor_index <= 2 then --humans
+		actors[actor_index]:initial_update()
 	end
 end
 
