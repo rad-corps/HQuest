@@ -655,7 +655,8 @@ gui = {
 		local p = actors[actor_index]
 
 		if #gui.messages > 0 then
-			print(gui.messages[1][1] .. "\x97", 10, 120, 7)		
+			local msg = gui.messages[1][1] .. " \x97"
+			print(msg, 64 - #msg*2 - 2, 120, 7)		
 
 		elseif actor_index < 3 then --draw player gui
 					
@@ -845,7 +846,7 @@ function player:init(type, index)
 	elseif type == "wizard" then		
 		self.armour = armour[1]
 		self.sprite = 2
-		self.max_bp = 1
+		self.max_bp = 4
 		self.mp = 8
 		self.type = 3
 	end
@@ -1558,7 +1559,11 @@ function do_actor_attack(attacker, defender)
 				end)
 		end
 	else
-		gui.add_message(attacker.name .. " misses")
+		if attack_hits == 0 then 
+			gui.add_message(attacker.name .. " misses")
+		else
+			gui.add_message(defender.name .. " dodged attack")
+		end
 	end
 
 end 
