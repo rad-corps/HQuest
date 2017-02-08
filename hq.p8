@@ -759,14 +759,17 @@ function chest:init(x, y, chest_type, amount)
 	self.chest_type = chest_type 
 	self.amount = amount
 	self.opened = false
+	self.visible = false
 end
 
 function chest:draw()
-	local sprite = 51
-	if self.opened == true then
-		sprite = 52
+	if self.visible == true then
+		local sprite = 51
+		if self.opened == true then
+			sprite = 52
+		end
+		spr(sprite, self.x * 8, self.y * 8)
 	end
-	spr(sprite, self.x * 8, self.y * 8)
 end
 
 --room class
@@ -1318,6 +1321,9 @@ function player:cast_spell(spell, spell_receiver)
 	if self.mp >= spell[2] then
 		self.mp -= spell[2]
 		self:set_action_used()
+		if self.movement_dice_rolled then
+			self:set_move_used()
+		end
 
 		--do we have a modifier for the magic power? 
 		local weapon_name = self.weapon[1]
@@ -1772,6 +1778,8 @@ function init_mission(num)
 		l_chest:init(ch[1], ch[2], ch[3], ch[4])
 		add(chests, l_chest)
 	end	
+
+	reveal_rooms(actors[1].x, actors[1].y)
 end
 
 function rooms_actor_is_in(actor)
@@ -1785,7 +1793,7 @@ function rooms_actor_is_in(actor)
 end
 
 function reveal_rooms(x,y)
-
+	printh("reveal_rooms" .. x .. " " .. y)
 	for rm in all(rooms) do
 		--check player collision with room
 		if cell_in_room(rm, x, y) then
@@ -1798,7 +1806,14 @@ function reveal_rooms(x,y)
 						actors[i].active = true
 					end
 				end
-			end			
+			end		
+
+			--todo check chest collision with rooms	
+			for ch in all(chests) do
+				if cell_in_room(rm, ch.x, ch.y) then
+					ch.visible = true
+				end
+			end
 		end
 	end
 end
