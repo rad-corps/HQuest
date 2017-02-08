@@ -134,7 +134,7 @@ function _init()
 				{"short sword",2,0, "2 attack"},
 				{"axe", 3, 300, "3 attack"},
 				{"power axe", 5, 1000, "5 attack"},
-				{"magic axe", 6, 3000, "6 attack 1/2 cost magic"} --double str magic
+				{"magic axe", 6, 3000, "6 attack x2 magic str"} --double str magic
 			},
 			{ --wizard
 				{"staff", 1, 0, "1 attack"},
@@ -154,8 +154,18 @@ function _init()
 			{"magic restore",2,250, "restores 4 magic points"}
 		}
 	}
+
+	-- 	self.name = ed[1]
+	-- self.ms = ed[2]
+	-- self.ml = self.ms
+	-- self.ap = ed[3]
+	-- self.dp = ed[4]
+	-- self.bp = ed[5]
+	-- self.max_bp = self.bp
+	-- self.mp = ed[6]
+	-- self.sprite = ed[7]
 	
-	enemy_type = {--name, hp, ap
+	enemy_type = {--name, moves, attack, defence, body, mind (unused), sprite
 	{"goblin",10,2,1,1,1, 16},
 	{"skeleton",6,2,2,1,0, 17},
 	{"zombie",5,2,3,1,0,18},
@@ -1031,7 +1041,8 @@ function player:move()
 				self.item_selection = 1
 			end
 
-		elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
+		--elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
+		elseif self.state != "attack_menu" and ch_opened == false then
 			self.state = "move_or_action"
 			self.menu_selection = 6
 		end
@@ -1250,15 +1261,22 @@ function player:cast_spell(spell, spell_receiver)
 	if self.mp >= spell[2] then
 		self.mp -= spell[2]
 		self:set_action_used()
+
+		--do we have a modifier for the magic power? 
+		local weapon_name = self.weapon[1]
+		local magic_multiplier = 1
+		if(weapon_name == "magic axe" or weapon_name == "magic staff") magic_multiplier = 2
+		if(weapon_name == "wizard weapon") magic_multiplier = 4
+
 		if spell[1] == "heal" then --heal
 			local old_bp = spell_receiver.bp
-			spell_receiver.bp = min(spell_receiver.bp + 2, spell_receiver.max_bp)
+			spell_receiver.bp = min(spell_receiver.bp + 2 * magic_multiplier, spell_receiver.max_bp)
 			gui.add_message("heal cast on " .. spell_receiver.name)
 			gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
 		elseif spell[1] == "fire" then --fire
 			local old_bp = spell_receiver.bp
 			gui.add_message("fire cast on " .. spell_receiver.name)
-			spell_receiver.bp = max(0, spell_receiver.bp - 1)
+			spell_receiver.bp = max(0, spell_receiver.bp - 1 * magic_multiplier)
 			gui.add_message(spell_receiver.name .. " lost " ..old_bp-spell_receiver.bp .. " body point(s)")
 			if spell_receiver.bp <= 0 then
 
