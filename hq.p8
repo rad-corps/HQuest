@@ -58,7 +58,7 @@ function get_mission(num)
 				{18,20},
 				{20,12}
 			},
-			enemies = { --x, y, type
+			enemies = {  --x, y, type
 				{3,3,2},
 				{4,3,2},
 				{8,2,3},
