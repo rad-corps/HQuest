@@ -731,15 +731,39 @@ gui = {
 					rect2colour = 1
 				end
 				local en_x = en.x * 8 + 8
-				local en_y = en.y * 8 + 8
-				--todo draw enemy stats
-				rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + 34, rect1colour)
-				rectfill(en_x, en_y, en_x + 40, en_y + 32, rect2colour)
-				print(en.name, en_x + 2, en_y + 2, 7)
-				print("body: " .. en.bp .. "/" .. en.max_bp, en_x + 2, en_y + 10)
-				print("attack: " .. en.ap, en_x + 2, en_y + 18)
-				print("defens: " .. en.dp, en_x + 2, en_y + 26)
+				local en_y = en.y * 8
 				
+				
+
+				local hilight_stats = {
+					en.name,
+					"body: " .. en.bp .. "/" .. en.max_bp,
+					"attack: " .. en.ap,
+					"defens: " .. en.dp,
+				}
+
+				if en.sleep > 0 then
+					add(hilight_stats, "asleep")
+				end
+				if en.protection > 0 then
+					add(hilight_stats, "protected")
+				end
+
+				local rect_height = #hilight_stats * 8
+
+				rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + rect_height + 2, rect1colour)
+				rectfill(en_x, en_y, en_x + 40, en_y + rect_height, rect2colour)
+
+				local y_pos = en_y + 2
+
+				for str in all(hilight_stats) do
+					local colour = 7
+					if str == "asleep" or str == "protected" then
+						colour = 12
+					end
+					print(str, en_x + 2, y_pos, colour)
+					y_pos += 8
+				end
 			end
 		end
 
