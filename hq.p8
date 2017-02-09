@@ -58,7 +58,7 @@ function get_mission(num)
 			,
 			--x,y,type,amount/strength
 			chest_data = [[
-				2, 19, 1, 3000|
+				2, 19, 3, -1|
 				4, 19, 2, -1|
 				22, 22, 2, -1|
 				21, 22, 2, -1|]]
@@ -607,12 +607,18 @@ item_select_state = {
 		if (btnp(5)) then
 			--get item type
 			local item = p.items[p.item_selection]
-			if item == 2 then -- potion
+			if item == 2 then -- heal potion
 				local old_bp = p.bp			
 				p.bp += 4
 				if(p.bp > p.max_bp) p.bp = p.max_bp
 				gui.add_message("used potion of heal")
 				gui.add_message(p.bp - old_bp .. " body restored" )
+			elseif item == 3 then --todo magic restore
+				local old_mp = p.mp			
+				p.mp += 4
+				p.mp = min(p.mp, p.max_mp)
+				gui.add_message("used magic restore")
+				gui.add_message(p.mp - old_mp .. " magic restored" )
 			end
 			del(p.items, p.items[p.item_selection])
 			app_state = game_state
@@ -1629,7 +1635,7 @@ function item_num_to_string(item_num)
 	if item_num == 2 then 
 		ret = "heal potion"
 	elseif item_num == 3 then 
-		ret = "strength potion"
+		ret = "magic restore"
 	end	
 	return ret
 end
