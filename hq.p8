@@ -366,7 +366,7 @@ function draw_active_actor_stats()
 		}
 
 		if a.protection > 0 then 
-			add(a_info, "protect level: " .. a.protection)
+			add(a_info, "protection level: " .. a.protection)
 		end
 		if a.sleep > 0 then 
 			add(a_info, "asleep: " .. a.protect)
@@ -390,7 +390,11 @@ function draw_active_actor_stats()
 		rectfill(2,2,126,y_sz+2,3)	
 		local y_pos = 4
 		for a_str in all(a_info) do
-			print(a_str, 64 - #a_str*2,y_pos,7)	
+			local colour = 7
+			if sub(a_str, 1, 7) == "protect" then
+				colour = 12
+			end
+			print(a_str, 64 - #a_str*2,y_pos,colour)	
 			y_pos += 8	
 		end
 		
