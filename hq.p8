@@ -58,10 +58,10 @@ function get_mission(num)
 			,
 			--x,y,type,amount/strength
 			chest_data = [[
-				2, 19, 1, 300|
-				4, 19, 1, 20000|
-				22, 22, 2, 1|
-				21, 22, 2, 1|]]
+				2, 19, 1, 3000|
+				4, 19, 2, -1|
+				22, 22, 2, -1|
+				21, 22, 2, -1|]]
 			,
 			end_tile = {3,21}
 		}
@@ -78,6 +78,7 @@ function _init()
 	animator2_counter = 0
 	gold = 0
 	run_update = true
+	draw_all_player_stats = false
 	actors={}
 
 	player_types = {
@@ -118,16 +119,6 @@ function _init()
 			{"magic restore",2,250, "restores 4 magic points"}
 		}
 	}
-
-	-- 	self.name = ed[1]
-	-- self.ms = ed[2]
-	-- self.ml = self.ms
-	-- self.ap = ed[3]
-	-- self.dp = ed[4]
-	-- self.bp = ed[5]
-	-- self.max_bp = self.bp
-	-- self.mp = ed[6]
-	-- self.sprite = ed[7]
 	
 	enemy_type = {--name, moves, attack, defence, body, mind (unused), sprite
 	{"goblin",10,2,1,1,1, 16},
@@ -189,6 +180,11 @@ function _draw()
 	if (animator > 7) animator = 5
 
 	app_state:draw()
+
+	--debugging
+	-- camera()
+	-- print("cpu: " .. stat(1) .. " ram: " .. stat(0), 10,110, 7)
+	-- restore_camera()
 end
 
 --app states
@@ -348,19 +344,60 @@ game_state={
 
 function draw_active_actor_stats()
 	local a = actors[actor_index]
-	if a == nil then
-		printh("error in draw_active_actor_stats - actor_index" .. actor_index .. " is nil actor")
-		do return end
+
+	if draw_all_player_stats == false then
+		
+		local a_str = "body:" .. a.bp .. "/" .. a.max_bp
+		if a.human != nil then
+			a_str = a_str .. " magic:" .. a.mp .. "/" .. a.max_mp .. " gold:" .. gold
+		end
+		camera()
+		rectfill(3,3,127,11,11)
+		rectfill(2,2,126,10,3)	
+		print(a_str, 64 - #a_str*2,4,7)		
+		restore_camera()
+	else
+		
+		local a_info = {
+			a.name,
+		 	"body:" .. a.bp .. "/" .. a.max_bp .. " magic:" .. a.mp .. "/" .. a.max_mp .. " gold:" .. gold,
+			a.weapon[1] .. ":" .. a.weapon[4],
+			a.armour[1] .. ":" .. a.armour[4]
+		}
+
+		if a.protection > 0 then 
+			add(a_info, "protect level: " .. a.protection)
+		end
+		if a.sleep > 0 then 
+			add(a_info, "asleep: " .. a.protect)
+		end		
+
+		--list items
+
+		if #a.items > 0 then
+			add(a_info, "")
+			add(a_info, "---items---")
+		end
+
+		for item in all(a.items) do
+			add(a_info, item_num_to_string(item))
+		end
+
+		local y_sz = #a_info * 8 + 1
+
+		camera()
+		rectfill(3,3,127,y_sz+3,11)
+		rectfill(2,2,126,y_sz+2,3)	
+		local y_pos = 4
+		for a_str in all(a_info) do
+			print(a_str, 64 - #a_str*2,y_pos,7)	
+			y_pos += 8	
+		end
+		
+		restore_camera()
+
 	end
-	local a_str = "body:" .. a.bp .. "/" .. a.max_bp
-	if a.human != nil then
-		a_str = a_str .. " magic:" .. a.mp .. "/" .. a.max_mp .. " gold:" .. gold
-	end
-	camera()
-	rectfill(3,3,127,11,11)
-	rectfill(2,2,126,10,3)	
-	print(a_str, 64 - #a_str*2,4,7)		
-	restore_camera()
+
 end
 
 shop_state = {
@@ -527,31 +564,31 @@ shop_state = {
 	end
 }
 
-player_stats_state = {
-	update = function()
-		if (btnp(4)) app_state = game_state
-	end,
+-- player_stats_state = {
+-- 	update = function()
+-- 		if (btnp(4)) app_state = game_state
+-- 	end,
 
-	draw = function()
-		camera()
-		rectfill(0,0,128,128, 4)
-		local p = actors[actor_index]
-		--todo add weapon and armour names
-		print("name: " .. p.name, 10, 10, 7)
-		print("att: " .. p.weapon[2], 10, 20, 7)
-		print("def: " .. p.armour[2], 50, 20, 7)
-		print("body: " .. p.bp, 90, 20, 7)
-		print("magic: " .. p.mp, 10, 30, 7)
-		print("shared gold: " .. gold, 50, 30, 7)
-		print("items:", 10, 40, 7)
-		local y_offset = 50
-		for it in all(p.items) do
-			print(item_num_to_string(it), 10, y_offset, 7)
-			y_offset += 10
-		end
-		restore_camera()
-	end
-}
+-- 	draw = function()
+-- 		camera()
+-- 		rectfill(0,0,128,128, 4)
+-- 		local p = actors[actor_index]
+-- 		--todo add weapon and armour names
+-- 		print("name: " .. p.name, 10, 10, 7)
+-- 		print("att: " .. p.weapon[2], 10, 20, 7)
+-- 		print("def: " .. p.armour[2], 50, 20, 7)
+-- 		print("body: " .. p.bp, 90, 20, 7)
+-- 		print("magic: " .. p.mp, 10, 30, 7)
+-- 		print("shared gold: " .. gold, 50, 30, 7)
+-- 		print("items:", 10, 40, 7)
+-- 		local y_offset = 50
+-- 		for it in all(p.items) do
+-- 			print(item_num_to_string(it), 10, y_offset, 7)
+-- 			y_offset += 10
+-- 		end
+-- 		restore_camera()
+-- 	end
+-- }
 
 item_select_state = {
 	update = function ()
@@ -1038,7 +1075,6 @@ function player:move()
 				elseif ch.chest_type >= 2 then --item 					
 					gui.add_message("you found " .. item_num_to_string(ch.chest_type))
 					add(self.items, ch.chest_type)
-
 				end
 				
 				--open the chest sprite
@@ -1047,7 +1083,8 @@ function player:move()
 			end
 		end
 
-		if ch_opened == false and self.action_used ==false then --check surrounding squares for enemies
+		--check surrounding squares for enemies
+		if ch_opened == false and self.action_used ==false then 
 			self.adjacent_enemies = self:get_adjacent_enemies()
 			if #self.adjacent_enemies > 0 then 
 				for en in all(self.adjacent_enemies) do 
@@ -1064,9 +1101,10 @@ function player:move()
 				self.state = "give_menu"
 				self.item_selection = 1
 			end
+		end
 
 		--elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
-		elseif self.state != "attack_menu" and ch_opened == false then
+		if self.state == "move" and ch_opened == false then
 			self.state = "move_or_action"
 			self.menu_selection = 6
 		end
@@ -1224,7 +1262,11 @@ function player:do_move_or_action_menu()
 		elseif self.menu_selection == 4 then --use item
 			app_state = item_select_state	
 		elseif self.menu_selection == 5 then --player stats
-			app_state = player_stats_state
+			--app_state = player_stats_state
+			draw_all_player_stats = true
+			gui.add_message("continue", function()
+				draw_all_player_stats = false
+				end)
 
 		elseif self.menu_selection == 6 then --end turn
 			increment_actor()
