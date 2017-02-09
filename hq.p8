@@ -5,100 +5,64 @@ __lua__
 function get_mission(num)
 	local l_mission = {}
 	if num == 2 then 
-		l_mission = {
-			starting_point = {2,20},
-			door_locations = {
-				{4,5},
-				{6,3},
-				{11,3},
-				{4,11},
-				{9,11},
-				{1,15},
-				{13,17},
-				{11,20},
-				{3,23},
-				{8,23},
-				{18,20},
-				{20,12}
-			},
-			enemies = { --x, y, type
-				{3,3,2},
-				{7,21,1}
-
-			},
-			rocks = {
-				{0,1},
-				{18,24},
-				{22,12},
-				{16,7},
-				{17,7}
-			},
-			chest_data = { --x,y,type,amount/strength
-				{2, 19, 1, 5000},
-				{4, 19, 1, 1600},
-				{22, 22, 1, 50},
-				{21, 22, 1, 100}
-			},
-			end_tile = {14,10}
-		}
+		printh("not implemented")
 	elseif num == 1 then 
 		l_mission = {
 			starting_point = {2,20},
-			door_locations = {
-				{4,5},
-				{6,3},
-				{11,3},
-				{4,11},
-				{9,11},
-				{1,15},
-				{13,17},
-				{11,20},
-				{3,23},
-				{8,23},
-				{18,20},
-				{20,12}
-			},
-			enemies = {  --x, y, type
-				{3,3,2},
-				{4,3,2},
-				{8,2,3},
-				{8,3,6},
-				{8,4,3},
-				{12,4,2},
-				{12,5,6},
-				{13,5,2},
-				{4,8,1},
-				{8,9,1},
-				{9,9,1},
-				{0,17,1},
-				{3,15,1},
-				{3,16,4},
-				{9,19,4},
-				{10,20,4},
-				{13,19,1},
-				{13,21,1}, 
-				{16,24,4},
-				{20,21,4}, 
-				{21,20,4}, 
-				{22,19,3},
-				{15,14,3}, 
-				{18,14,3}, 
-				{18,11,3},
-				{16,11,8}
-			},
-			rocks = {
-				{0,1},
-				--{18,24},
-				{22,12},
-				{16,7},
-				{17,7}
-			},
-			chest_data = { --x,y,type,amount/strength
-				{2, 19, 1, 300},
-				{4, 19, 1, 20000},
-				{22, 22, 2, 1},
-				{21, 22, 2, 1}
-			},
+			door_locations = [[
+				4,5|
+				6,3|
+				11,3|
+				4,11|
+				9,11|
+				1,15|
+				13,17|
+				11,20|
+				3,23|
+				8,23|
+				18,20|
+				20,12|]]
+			,
+			--x,y,type
+			enemies =	[[3,3,2|
+			4,3,2|
+			8,2,3|
+			8,3,6|
+			8,4,3|
+			12,4,2|
+			12,5,6|
+			13,5,2|
+			4,8,1|
+			8,9,1|
+			9,9,1|
+			0,17,1|
+			3,15,1|
+			3,16,4|
+			9,19,4|
+			10,20,4|
+			13,19,1|
+			13,21,1|
+			16,24,4|
+			20,21,4|
+			21,20,4|
+			22,19,3|
+			15,14,3|
+			18,14,3|
+			18,11,3|
+			16,11,8|]],
+			rocks = [[
+				0,1|
+				22,12|
+				16,7|
+				17,7|]]
+			,
+			--x,y,type,amount/strength
+			chest_data = [[
+				2, 19, 1, 300|
+				4, 19, 1, 20000|
+				22, 22, 2, 1|
+				21, 22, 2, 1|]]
+			,
 			end_tile = {3,21}
 		}
 	end
@@ -1732,6 +1696,8 @@ function init_mission(num)
 
 	mission = get_mission(num)	
 
+	mission.door_locations = parse_string_to_object(mission.door_locations, 2)
+
 	for dl in all (mission.door_locations) do
 		mset(dl[1], dl[2],48)
 	end	
@@ -1758,6 +1724,8 @@ function init_mission(num)
 
 	actor_index = 1
 
+	--parse enemies 
+	mission.enemies = parse_string_to_object(mission.enemies, 3)
 	--add the enemies
 	for en in all(mission.enemies) do
 		--create a new enemy based on the enemy data
@@ -1767,11 +1735,13 @@ function init_mission(num)
 	end	
 
 	--add the rocks
+	mission.rocks = parse_string_to_object(mission.rocks, 2)
 	for rk in all(mission.rocks) do
 		mset(rk[1], rk[2],50)
 	end	
 
 	--initialise chests
+	mission.chest_data = parse_string_to_object(mission.chest_data, 4)
 	chests={}
 	for ch in all (mission.chest_data) do
 		local l_chest = chest:new()
@@ -1780,6 +1750,30 @@ function init_mission(num)
 	end	
 
 	reveal_rooms(actors[1].x, actors[1].y)
+end
+
+function parse_string_to_object(str, num_fields)
+	ret = {}
+	local temp_str = ""
+	while #str > 0 do
+		
+		local obj = {}
+		printh(#str)
+		printh(str)
+		while #obj < num_fields do 
+			local d=sub(str,1,1)		 	
+		 	if d=="," or d == "|" then
+				add(obj, temp_str+0)
+				temp_str = ""
+		 	elseif d!=" " then
+				temp_str = temp_str .. d
+		 	end
+			str=sub(str,2)
+
+		end
+		add(ret, obj)		
+	end
+	return ret
 end
 
 function rooms_actor_is_in(actor)
