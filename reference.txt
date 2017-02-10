@@ -1,3 +1,13 @@
+cut down functions
+--------------------------------
+chest_at_tile							->cat
+closed_chest_at_tile					->ccat
+closed_chest_at_surrounding_location	->ccasl
+player.attack_selection					->player.a_s
+update_a_s								->update_attack_selection
+item_num_to_string						->i_to_s
+shop_state								->ss
+
 Enemies
 -----------------------------------------
 	Arg list:
@@ -26,7 +36,8 @@ chest_data
 		2 - y (cell, not pixel)
 		3 - type
 			1 - gold
-			2 - potion 
+			2 - heal potion 
+			3 - magic potion
 		4 - strength
 
 chest properties

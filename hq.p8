@@ -85,7 +85,6 @@ rocks =
 15,8|
 15,16|]]
 ,
---x,y,type,amount/strength
 chest_data = 
 [[5, 2, 2, -1|
 5, 3, 2, -1|
@@ -125,19 +124,19 @@ player_types = {
 
 equipment_table = {
 {
-{--barbarian
+{
 {"long sword", 3, 0, "3 attack"},
 {"power sword", 4, 300, "4 attack"},
 {"gold sword", 6, 1000, "6 attack"},
 {"death sword", 8, 3000, "8 attack"}
 },
-{ --dwarf
+{
 {"short sword",2,0, "2 attack"},
 {"axe", 3, 300, "3 attack"},
 {"power axe", 5, 1000, "5 attack"},
 {"magic axe", 6, 3000, "6 attack x2 magic str"}
 },
-{ --wizard
+{
 {"staff", 1, 0, "1 attack"},
 {"mighty staff", 2, 300, "2 attack"},
 {"magic staff", 2, 1000, "2 attack x2 magic str"},
@@ -343,12 +342,10 @@ game_state={
 			rm:draw()
 		end	
 		
-		--draw all actors
 		for ac in all(actors) do
 			ac:draw()
 		end
 
-		--draw all chests
 		for ch in all(chests) do
 			ch:draw()
 		end
@@ -395,7 +392,7 @@ function draw_active_actor_stats()
 		end
 
 		for item in all(a.items) do
-			add(a_info, item_num_to_string(item))
+			add(a_info, i_to_s(item))
 		end
 
 		local y_sz = #a_info * 8 + 1
@@ -437,15 +434,15 @@ ss = {
 
 	update = function()
 		
-		if (btnp(3)) then --down
+		if (btnp(3)) then
 			ss.y_selection += 1
 			if (ss.y_selection == 3) ss.y_selection = 5
 			ss.y_selection = min(ss.y_selection, 7)
 		end
-		if (btnp(2)) then  --up
+		if (btnp(2)) then
 			ss.y_selection -= 1
 			if (ss.y_selection == 4) ss.y_selection = 2
-			ss.y_selection = max(1, ss.y_selection) --dont go below 1	
+			ss.y_selection = max(1, ss.y_selection)
 		end
 
 		local x_val = 0
@@ -454,48 +451,48 @@ ss = {
 
 		local y_sel = ss.y_selection
 
-		if y_sel == 1 then --browse
+		if y_sel == 1 then
 			ss.browsing_selection += x_val
 			ss.browsing_selection = max(ss.browsing_selection, 1)
 			ss.browsing_selection = min(#ss.categories, ss.browsing_selection)
 			if (x_val != 0) ss.item_num = 1
-		elseif y_sel == 2 then --item
+		elseif y_sel == 2 then
 
 			local list_sz = 1
 			local b_sel = ss.browsing_selection
 
-			if b_sel == 1 then --weapon
+			if b_sel == 1 then
 				list_sz = #equipment_table[b_sel][ss.player_num]
-			else --armour or item
+			else
 				list_sz = #equipment_table[b_sel]
 			end
 
 			ss.item_num += x_val
 			ss.item_num = max(ss.item_num, 1)
 			ss.item_num = min(list_sz, ss.item_num)
-		elseif y_sel == 6 then --player num
+		elseif y_sel == 6 then
 			ss.player_num += x_val
 			ss.player_num = max(ss.player_num, 1)
 			ss.player_num = min(2, ss.player_num)
 		end
 
 		if btnp(5) then 
-			if ss.y_selection == 5 then --x / buy
+			if ss.y_selection == 5 then
 				local b_item = ss.browsing_item
 				if gold >= b_item[3] then
 					gold -= b_item[3]
 					local p = actors[ss.player_num]
-					if ss.browsing_selection == 1 then --weapon
+					if ss.browsing_selection == 1 then
 						p.wpn = b_item
-					elseif ss.browsing_selection == 2 then--armour
+					elseif ss.browsing_selection == 2 then
 						p.armour = b_item
-					elseif ss.browsing_selection == 3 then--item
+					elseif ss.browsing_selection == 3 then
 						add(p.items, b_item[2])
 					end
 				else
 					printh("can not afford " .. b_item[1])
 				end
-			elseif ss.y_selection == 7 then --progress to next mission
+			elseif ss.y_selection == 7 then
 				mission_num += 1
 				game_state.init()
 				app_state = game_state
@@ -509,20 +506,14 @@ ss = {
 		if (p_num == 2) rect_colour = 13
 		rectfill(0,0,128,128,rect_colour)
 		
-		--current weapon and armour
 		rectfill(5,4, 128-5, 53, 1)		
 
-		--buy menu
 		rectfill(5,54, 128-5, 103, 2)		
 
-		--player menu
 		rect_colour = 13
 		if (p_num == 2) rect_colour = 12
 		rectfill(5,104, 128-5, 122, rect_colour)	
 
-		--gold
-		--rectfill(5,44, 128-5, 52, 9)
-		
 		local p = actors[p_num]
 		local b_sel = ss.browsing_selection
 		local i_num = ss.item_num
@@ -532,9 +523,9 @@ ss = {
 		
 		local b_item = ss.browsing_item
 
-		if b_sel == 1 then --weapon
+		if b_sel == 1 then
 			b_item = equipment_table[b_sel][p.type][i_num]
-		else --armour or item
+		else
 			b_item = equipment_table[b_sel][i_num]
 		end
 
@@ -555,8 +546,7 @@ ss = {
 			"next level",
 		}
 
-		--modify the y_selection in the shop_strings array
-		if y_sel == 5 or y_sel == 7 then --buy or next level
+		if y_sel == 5 or y_sel == 7 then
 			shop_strings[5 + y_sel] = "\x97" .. shop_strings[5 + y_sel] .. "\x97"
 		else
 			shop_strings[5 + y_sel] = "\x8b" .. shop_strings[5 + y_sel] .. "\x91"
@@ -572,7 +562,6 @@ ss = {
 			y_offset += 10
 		end
 
-		--draw player sprite
 		if p_num == 2 then
 			pal(5, 13, 0)
 			pal(13, 5, 0)
@@ -594,15 +583,14 @@ item_select_state = {
 			app_state = game_state
 		end
 		if (btnp(5)) then
-			--get item type
 			local item = p.items[p.item_selection]
-			if item == 2 then -- heal potion
+			if item == 2 then
 				local old_bp = p.bp			
 				p.bp += 4
 				if(p.bp > p.max_bp) p.bp = p.max_bp
 				gui.msg("used potion of heal")
 				gui.msg(p.bp - old_bp .. " body restored" )
-			elseif item == 3 then --todo magic restore
+			elseif item == 3 then
 				local old_mp = p.mp			
 				p.mp += 4
 				p.mp = min(p.mp, p.max_mp)
@@ -623,9 +611,9 @@ item_select_state = {
 		
 		for num=1, #p.items do
 			if p.item_selection == num then 
-				print("*" .. item_num_to_string(p.items[num]) .. "*", 10, y_offset, 7)
+				print("*" .. i_to_s(p.items[num]) .. "*", 10, y_offset, 7)
 			else
-				print(item_num_to_string(p.items[num]), 10, y_offset, 7)
+				print(i_to_s(p.items[num]), 10, y_offset, 7)
 			end
 			y_offset += 10
 		end	
@@ -633,16 +621,12 @@ item_select_state = {
 	end
 }
 
---gui
---------------------------------------
-
 gui = {
 	messages = {},
 	
 	msg = function (msg, callback)
 		local gui_msg = {msg, callback}
 
-		--dont ever add a duplicate message
 		for m in all(gui.messages) do 
 			if m[1] == msg then
 				do return end
@@ -687,18 +671,17 @@ elseif actor_index < 3 then
 	elseif p.state == "spell_select" then
 		local spell_name = "\x8b" .. spell_list[p.spell_selection][1] .. "\x91"					
 		print(spell_name,  64 - #spell_name * 2, y_pos, 7)	
-	elseif p.state == "attack_menu" then --todo: combine attack and spell menu
+	elseif p.state == "attack_menu" then
 		print(" \x8bselect enemy\x91   attack\x97", 5, y_pos, 7)			
-		local en = p.adjacent_enemies[p.attack_selection]			
+		local en = p.adjacent_enemies[p.a_s]			
 
 	elseif p.state == "spell_menu" then		
 		local spell_name = spell_list[p.spell_selection][1]
 		print(" \x8bcast ".. spell_name .." on\x91   cast\x97", 5, 120, 7)			
 
 	elseif p.state == "give_menu" then			
-		print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
+		print(" \x8b" .. i_to_s(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
 		print("\x97give", 97, 120, 7)	
-		--get cell to hilight
 		local mt = p:get_mate()
 		restore_camera()
 		rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
@@ -706,9 +689,10 @@ elseif actor_index < 3 then
 
 	if p.state == "attack_menu" or p.state == "spell_menu" then	
 
-		local en = p.adjacent_enemies[p.attack_selection]			
+		local en = p.adjacent_enemies[p.a_s]			
+		local en_y = en.y * 8
 		restore_camera()
-		rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
+		rect(en.x * 8, en_y, en.x * 8 + 7, en_y + 7, animator)
 
 		local rect1colour = 14
 		local rect2colour = 2
@@ -719,7 +703,7 @@ elseif actor_index < 3 then
 			rect2colour = 1
 		end
 		local en_x = en.x * 8 + 8
-		local en_y = en.y * 8
+		
 		
 		local hilight_stats = {
 			en.name,
@@ -757,45 +741,41 @@ restore_camera()
 	end
 }
 
---chest class
--------------------------
 chest = {}
 
 function chest:new(o)
-	o = o or {}   -- create object if user does not provide one
-	setmetatable(o, self)
-	self.__index = self
-	return o
+o = o or {}
+setmetatable(o, self)
+self.__index = self
+return o
 end
 
 function chest:init(x, y, chest_type, amount)
-	self.x = x
-	self.y = y
-	self.chest_type = chest_type 
-	self.amount = amount
-	self.opened = false
-	self.visible = false
+self.x = x
+self.y = y
+self.chest_type = chest_type 
+self.amount = amount
+self.opened = false
+self.visible = false
 end
 
 function chest:draw()
-	if self.visible == true then
-		local sprite = 51
-		if self.opened == true then
-			sprite = 52
-		end
-		spr(sprite, self.x * 8, self.y * 8)
-	end
+if self.visible == true then
+local sprite = 51
+if self.opened == true then
+sprite = 52
+end
+spr(sprite, self.x * 8, self.y * 8)
+end
 end
 
---room class
--------------------------
 room={}
 
 function room:new(o)
-	o = o or {}   -- create object if user does not provide one
-	setmetatable(o, self)
-	self.__index = self
-	return o
+o = o or {}
+setmetatable(o, self)
+self.__index = self
+return o
 end
 
 function room:init(x, y, w, h,hall,vis)
@@ -807,7 +787,6 @@ function room:init(x, y, w, h,hall,vis)
 	self.h = h
 
 	if hall == false then
-		--include the walls as well. 
 		self.x -= 1 
 		self.y -= 1
 		self.w += 2
@@ -833,65 +812,65 @@ function init_rooms_array()
 		add(rooms, room:new())
 	end
 
-	rooms[1]:init(2,2,4,3)
-	rooms[2]:init(7,2,4,3)
-	rooms[3]:init(12,2,3,5)
-	rooms[3]:init(12,2,3,5)
-	rooms[4]:init(2,6,4,5)
-	rooms[5]:init(7,6,4,5)
-	rooms[6]:init(19,2,3,5)
-	rooms[7]:init(23,2,4,4)
-	rooms[8]:init(28,2,4,4)
-	rooms[9]:init(23,7,4,4)
-	rooms[10]:init(28,7,4,4)
-	rooms[11]:init(14,10,6,5)
-	rooms[12]:init(2,14,3,4)
-	rooms[13]:init(6,14,2,3)
-	rooms[14]:init(9,14,2,3)
-	rooms[15]:init(2,19,3,4, false, true)
-	rooms[16]:init(6,18,5,5)
-	rooms[17]:init(12,18,3,5)
-	rooms[18]:init(23,14,4,4)
-	rooms[19]:init(28,14,4,4)
-	rooms[20]:init(19,18,4,5)
-	rooms[21]:init(24,19,3,4)
-	rooms[22]:init(28,19,4,4)
-	rooms[23]:init(0,0,34,2,true)
-	rooms[24]:init(32,0,2,25,true)
-	rooms[25]:init(0,23,34,2,true)
-	rooms[26]:init(0,0,2,25,true)
-	rooms[27]:init(15,0,4,9,true)
-	rooms[28]:init(21,11,13,3,true)
-	rooms[29]:init(15,16,4,9,true)
-	rooms[30]:init(0,11,13,3,true)
-	rooms[31]:init(11,7,12,3,true)
-	rooms[32]:init(20,7,3,11,true)
-	rooms[33]:init(11,15,12,3,true)
-	rooms[34]:init(11,7,3,11,true)
+	r = {
+	{2,2,4,3},
+	{7,2,4,3},
+	{12,2,3,5},
+	{12,2,3,5},
+	{2,6,4,5},
+	{7,6,4,5},
+	{19,2,3,5},
+	{23,2,4,4},
+	{28,2,4,4},
+	{23,7,4,4},
+	{28,7,4,4},
+	{14,10,6,5},
+	{2,14,3,4},
+	{6,14,2,3},
+	{9,14,2,3},
+	{2,19,3,4, false, true},
+	{6,18,5,5},
+	{12,18,3,5},
+	{23,14,4,4},
+	{28,14,4,4},
+	{19,18,4,5},
+	{24,19,3,4},
+	{28,19,4,4},
+	{0,0,34,2,true},
+	{32,0,2,25,true},
+	{0,23,34,2,true},
+	{0,0,2,25,true},
+	{15,0,4,9,true},
+	{21,11,13,3,true},
+	{15,16,4,9,true},
+	{0,11,13,3,true},
+	{11,7,12,3,true},
+	{20,7,3,11,true},
+	{11,15,12,3,true},
+	{11,7,3,11,true}
+	}
+
+	for i=1, 34 do
+		local rm = r[i]
+		rooms[i]:init(rm[1], rm[2], rm[3], rm[4], rm[5], rm[6])
+	end
 
 end
 
---player class
--------------------------
 player = {}
 
---player methods
 function player:new (o)
-	o = o or {}   -- create object if user does not provide one
+	o = o or {}
 	setmetatable(o, self)
 	self.__index = self
 	return o
 end
 
 function player:init(type, index)
-	--todo each player type should have a different sprite	
 	self.index = index
 
 	self.name = type
 	self.human = true
-	
-
-	printh(type)
 
 	local weapons = equipment_table[1]
 	local armour = equipment_table[2]
@@ -923,7 +902,6 @@ function player:init(type, index)
 	self.y = 0
 	self:reset()
 
-	--self.g = 0
 	self.items = {}
 	
 end
@@ -943,7 +921,6 @@ function player:reset()
 end
 
 function player:initial_update()
-	--are we next to an enemy? set self.menu_selection to 2
 	local en = self:get_adjacent_enemies()
 	if (#en > 0) self.menu_selection = 2
 end
@@ -964,7 +941,6 @@ function player:update()
 		self.sleep -= 1
 	end
 
-	--user should be able to bail from any state into main menu
 	if (btnp(4)) then
 		if self.state == "move_or_action" then 
 			self.state = "move"
@@ -993,20 +969,15 @@ function player:do_give_menu()
 		self.item_selection = max(self.item_selection - 1, 1)
 	elseif (btnp(1)) then
 		self.item_selection = min(self.item_selection + 1, #self.items)
-	elseif (btnp(5)) then --assume we can only get here when already adjacent
+	elseif (btnp(5)) then
 		
 		local mate = self:get_mate()
 
-		--copy the item to our mate
 		add(mate.items, self.items[self.item_selection])
-
-		gui.msg("given " .. item_num_to_string(self.items[self.item_selection]))
-
-		--remove the item from ourselves
+		gui.msg("given " .. i_to_s(self.items[self.item_selection]))
 		del(self.items, self.item_selection)
 
 		self.state = "move_or_action"
-
 	end
 end
 
@@ -1021,7 +992,6 @@ function player:draw()
 		pal(13, 5, 0)
 	end
 
-	--centre camera 
 	if actor_index == self.index then
 		
 		if self.state != "spell_menu" and self.state != "attack_menu" then
@@ -1029,8 +999,8 @@ function player:draw()
 			if animator2 == true then
 				rect(self.x * 8, self.y * 8, self.x * 8 + 7, self.y * 8 + 7, 11)
 			end				
-		else --in this case we want the camera on the active enemy
-			local en = self.adjacent_enemies[self.attack_selection]
+		else
+			local en = self.adjacent_enemies[self.a_s]
 			set_camera(en.x * 8 - 64, en.y * 8 - 64)
 		end
 
@@ -1074,50 +1044,35 @@ function player:move()
 	self.y += heading.y
 
 	if (btnp(5)) then 
-		local ch_opened = false --check for enemies if no chest was opened
+		local ch_opened = false
 		do
-			local ch = closed_chest_at_surrounding_location(self.x, self.y)
+			local ch = ccasl(self.x, self.y)
 			if ( ch != nil and ch.opened == false) then 		
-				if ch.chest_type == 1 then --gold
-					--display what is in it through the gui
+				if ch.chest_type == 1 then
 					gui.msg("you found " .. ch.amount .. " gold")
 
-					--add the contents to the player's inventory	
-					--gold is now global
-					--self.g += ch.amount 
 					gold += ch.amount
-				elseif ch.chest_type >= 2 then --item 					
-					gui.msg("you found " .. item_num_to_string(ch.chest_type))
+				elseif ch.chest_type >= 2 then
+					gui.msg("you found " .. i_to_s(ch.chest_type))
 					add(self.items, ch.chest_type)
 				end
-				
-				--open the chest sprite
 				ch.opened = true
 				ch_opened = true
 			end
 		end
-
-		--check surrounding squares for enemies
 		if ch_opened == false and self.action_used ==false then 
 			self.adjacent_enemies = self:get_adjacent_enemies()
 			if #self.adjacent_enemies > 0 then 
-				for en in all(self.adjacent_enemies) do 
-						printh(en.name)
-				end
 				self.state = "attack_menu"
-				self.attack_selection = 1
+				self.a_s = 1
 			end
 		end
-
-		--check surrounding location for mate. open give menu
 		if self.state != "attack_menu" and ch_opened == false and self:is_player_adjacent() == true then
 			if #self.items >= 1 then
 				self.state = "give_menu"
 				self.item_selection = 1
 			end
 		end
-
-		--elseif self.state != "attack_menu" and ch_opened == false and self.ml == 0 then
 		if self.state == "move" and ch_opened == false then
 			self.state = "move_or_action"
 			self.menu_selection = 6
@@ -1129,40 +1084,32 @@ function player:move()
 		self.y = prevy
 	end
 		
-	--check collision with doors
+	--doors
 	if ( mget(self.x, self.y) == 48 )	then
 		mset(self.x, self.y, 49)
 	end
 
-	--check collision with end tile
-	--printh(fget(mget(self.x, self.y)))
-
-	--check collision with other player
 	local mate = self:get_mate()
 	if mate.x == self.x and mate.y == self.y and mate.alive == true then
 		self.x += heading.x
 		self.y += heading.y
 
-		--do we have at least 2 moves left?
 		if self.ml < 2 or self:check_simple_collision() == true then
 			gui.msg("can not pass")
 			self.x = prevx
 			self.y = prevy
 
-		else --success
+		else
 			gui.msg("passed player")
 			self.ml -= 1
 		end
 	end
 		
-
-	--check collision with map edge
 	if self.x < 0 or self.x >= map_w or self. y < 0 or self.y >= map_h then
 		self.x = prevx
 		self.y = prevy
 	end
- 
-	 --decrement movesleft if player moved
+
 	if self.x ~= prevx or self.y ~= prevy then
 		self.ml -= 1		
 		reveal_rooms(self.x, self.y)
@@ -1173,12 +1120,10 @@ end
 function player:check_simple_collision()
 	local collided = false
 
- 	--check collision with walls, rocks and chests
 	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or cat(self.x, self.y) != nil)	then
 		collided = true
 	end
 
-	--check collision with enemies
 	for i=3, #actors do
 		if actors[i].alive == true then
 			if self.x == actors[i].x and self.y == actors[i].y then
@@ -1200,10 +1145,10 @@ function player:do_spell_select()
 	if (btnp(0)) self.spell_selection = max(1, self.spell_selection - 1)
 	if (btnp(1)) self.spell_selection = min(#spell_list, self.spell_selection + 1)
 	if (btnp(5)) then
-		--todo this stuff needs to happen after selecting a spell
+		--todo on spell select
 		self.adjacent_enemies = self:get_actors_in_room()
 		self.state = "spell_menu"
-		self.attack_selection = 1
+		self.a_s = 1
 	end
 end
 
@@ -1243,51 +1188,46 @@ function player:do_move_or_action_menu()
 
 	self.menu_selection += x_sel
 
-	--wrap around
 	if self.menu_selection < 1 then self.menu_selection = #move_or_action_menu end
 	if self.menu_selection > #move_or_action_menu then self.menu_selection = 1 end
 
-	--skip menu entries that have been used
 	self:next_menu_selection(x_sel)
 
 	if (btnp(5)) then
 		
-		if self.menu_selection == 1 then --move						
+		if self.menu_selection == 1 then
 			self.state = "move"
-		elseif self.menu_selection == 2 then --attack						
+		elseif self.menu_selection == 2 then
 			if self.action_used == false then
 				self.adjacent_enemies = self:get_adjacent_enemies()
 				if (#self.adjacent_enemies == 0) gui.msg("no enemy to attack")
 				if (#self.adjacent_enemies > 0) then
 					self.state = "attack_menu"
-					self.attack_selection = 1
+					self.a_s = 1
 				end
 			else
 				gui.msg("action already performed")
 			end
-		elseif self.menu_selection == 3 then --cast spell						
-			printh("cast spell selected")
+		elseif self.menu_selection == 3 then
 			if self.action_used == false then
 				self.state = "spell_select"
 				self.spell_selection = 1			
 			else
 				gui.msg("action already performed")
 			end
-		elseif self.menu_selection == 4 then --use item
+		elseif self.menu_selection == 4 then
 			app_state = item_select_state	
-		elseif self.menu_selection == 5 then --player stats
-			--app_state = player_stats_state
+		elseif self.menu_selection == 5 then
 			draw_all_player_stats = true
 			gui.msg("continue", function()
 				draw_all_player_stats = false
 				end)
 
-		elseif self.menu_selection == 6 then --end turn
+		elseif self.menu_selection == 6 then
 			increment_actor()
-			--self.move_used = false
 			self.action_used = false
 			self.menu_selection = 1
-			self.attack_selection = nil
+			self.a_s = nil
 			self.adjacent_enemies = nil
 			self.movement_dice_rolled = false
 			self.move_used = false
@@ -1295,28 +1235,28 @@ function player:do_move_or_action_menu()
 	end
 end
 
-function player:update_attack_selection()
-	if (btnp(0)) then --left arrow (change selected enemy to attack)
-		self.attack_selection -= 1
-		if self.attack_selection == 0 then
-			self.attack_selection = #self.adjacent_enemies
+function player:update_a_s()
+	if (btnp(0)) then
+		self.a_s -= 1
+		if self.a_s == 0 then
+			self.a_s = #self.adjacent_enemies
 		end		
-	elseif (btnp(1)) then --right arrow (change selected enemy to attack)
-		self.attack_selection += 1
-		if self.attack_selection > #self.adjacent_enemies then
-			self.attack_selection = 1
+	elseif (btnp(1)) then
+		self.a_s += 1
+		if self.a_s > #self.adjacent_enemies then
+			self.a_s = 1
 		end
-	elseif (btnp(4)) then --z go back
+	elseif (btnp(4)) then
 		self.adjacent_enemies = nil
-		self.attack_selection = nil
+		self.a_s = nil
 		self.state = "move_or_action"
 	end
 end
 
 function player:do_attack_menu()
-	self:update_attack_selection()
+	self:update_a_s()
 
-	if (btnp(5)) then --x attack enemy
+	if (btnp(5)) then
 		self:attack_enemy()
 		self:set_action_used()
 		if self.movement_dice_rolled == true then
@@ -1327,10 +1267,10 @@ function player:do_attack_menu()
 end
 
 function player:do_spell_menu()
-	self:update_attack_selection()
+	self:update_a_s()
 
-	if (btnp(5)) then --x use spell
-		local spell_receiver = self.adjacent_enemies[self.attack_selection]
+	if (btnp(5)) then
+		local spell_receiver = self.adjacent_enemies[self.a_s]
 		local spell = spell_list[self.spell_selection]
 		--todo check if enough mp at this point. remove check from cast_spell
 		self:cast_spell(spell, spell_receiver)		
@@ -1345,18 +1285,17 @@ function player:cast_spell(spell, spell_receiver)
 			self:set_move_used()
 		end
 
-		--do we have a modifier for the magic power? 
 		local weapon_name = self.wpn[1]
 		local magic_multiplier = 1
 		if(weapon_name == "magic axe" or weapon_name == "magic staff") magic_multiplier = 2
 		if(weapon_name == "wizard weapon") magic_multiplier = 4
 
-		if spell[1] == "heal" then --heal
+		if spell[1] == "heal" then
 			local old_bp = spell_receiver.bp
 			spell_receiver.bp = min(spell_receiver.bp + 2 * magic_multiplier, spell_receiver.max_bp)
 			gui.msg("heal cast on " .. spell_receiver.name)
 			gui.msg(spell_receiver.bp - old_bp .. " body recovered")
-		elseif spell[1] == "fire" then --fire
+		elseif spell[1] == "fire" then
 			local old_bp = spell_receiver.bp
 			gui.msg("fire cast on " .. spell_receiver.name)
 			spell_receiver.bp = max(0, spell_receiver.bp - 1 * magic_multiplier)
@@ -1368,10 +1307,10 @@ function player:cast_spell(spell, spell_receiver)
 						spell_receiver.active = false
 					end)
 			end
-		elseif spell[1] == "sleep" then --sleep
+		elseif spell[1] == "sleep" then
 			spell_receiver.sleep = magic_multiplier + 1
 			gui.msg("sleep cast on " .. spell_receiver.name)
-		elseif spell[1] == "protect" then --protection
+		elseif spell[1] == "protect" then
 			spell_receiver.protection = 2 * magic_multiplier
 			gui.msg("protect cast on " .. spell_receiver.name)
 		end
@@ -1382,19 +1321,17 @@ function player:cast_spell(spell, spell_receiver)
 end
 
 function player:attack_enemy()
-	--get the enemy
-	local en = self.adjacent_enemies[self.attack_selection]
+	local en = self.adjacent_enemies[self.a_s]
 	do_actor_attack(self, en)
 end
 
---this could be simplified
 function player:get_adjacent_enemies()
 	local ret = {}
 
 	local neighbour_tiles = getneighbours({self.x, self.y})
 
 	for neighbour in all (neighbour_tiles) do
-		if neighbour[3] > 5 then --this is the traversal cost. cost of 6 is an enemy
+		if neighbour[3] > 5 then
 			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
 		end
 	end
@@ -1402,52 +1339,47 @@ function player:get_adjacent_enemies()
 	return ret
 end
 
---this could be simplified
 function player:get_actors_in_room()
-	local ret = {}
+local ret = {}
 
-	--get all rooms player is in
-	local rooms = rooms_actor_is_in(self)
+local rooms = rooms_actor_is_in(self)
 
-	--check all enemies collision with room
-	for rm in all(rooms) do
-		for i=1, #actors do
-			if cell_in_room(rm, actors[i].x, actors[i].y) then
-				if actors[i].alive == true then
-					--todo only add if unique
-					add(ret, actors[i])
-				end
-			end
-		end	
-	end
+for rm in all(rooms) do
+for i=1, #actors do
+if cell_in_room(rm, actors[i].x, actors[i].y) then
+if actors[i].alive == true then
+add(ret, actors[i])
+end
+end
+end	
+end
 
-	return ret
+return ret
 end
 
 function player:is_player_adjacent()
-	local mate = self:get_mate()
-	local ret = false
+local mate = self:get_mate()
+local ret = false
 
-	if mate.x == self.x then
-		if mate.y == self.y + 1 or mate.y == self.y - 1 then
-			ret = true
-		end
-	elseif mate.y == self.y then
-		if mate.x == self.x + 1 or mate.x == self.x - 1 then
-			ret = true
-		end
-	end
-	return ret
+if mate.x == self.x then
+if mate.y == self.y + 1 or mate.y == self.y - 1 then
+ret = true
+end
+elseif mate.y == self.y then
+if mate.x == self.x + 1 or mate.x == self.x - 1 then
+ret = true
+end
+end
+return ret
 end
 
 enemy={}
 
---enemy functions
 function enemy:new(o)
-	o = o or {}
-	setmetatable(o, self)
- 	self.__index = self 	
-	return o
+o = o or {}
+setmetatable(o, self)
+self.__index = self 	
+return o
 end
 
 function enemy:init(en)
@@ -1457,7 +1389,6 @@ function enemy:init(en)
 	self.active = false
 	self.alive = true	
 
-	--get enemy data
 	local ed = enemy_type[self.type]
 
 	self.name = ed[1]
@@ -1474,22 +1405,22 @@ function enemy:init(en)
 end
 
 function increment_actor()
-	actor_index += 1
+actor_index += 1
 
-	if actor_index > #actors then
-		actor_index = 1
-	end
+if actor_index > #actors then
+actor_index = 1
+end
 
-	if actor_index <= 2 then --humans
-		actors[actor_index]:initial_update()
-	end
+if actor_index <= 2 then
+actors[actor_index]:initial_update()
+end
 end
 
 function enemy:finishmove()
-	
-	self.ml = self.ms	
-	self.path = nil
-	increment_actor()
+
+self.ml = self.ms	
+self.path = nil
+increment_actor()
 end
 
 function enemy:update()
@@ -1499,7 +1430,7 @@ function enemy:update()
 		do return end
 	end
 
-	--todo put this somewhere common for player and enemy
+	--todo put somewhere common for player and enemy
 	if self.sleep >= 2 then
 		gui.msg(self.name .. " is asleep")
 		self.sleep -= 1
@@ -1522,7 +1453,6 @@ function enemy:update()
 		end
 		self.player_index = 2
 
-		--determine shortest of the two paths
 		if self.paths[2] == nil then 
 			self.player_index = 1
 		elseif self.paths[1] == nil then 
@@ -1546,13 +1476,11 @@ function enemy:update()
 	
 			self.ml -= 1
 			
-			--we rached the end of the a star path, we are probably next to the player, lets check to be sure		
 			if self.pathindex > #self.path  then				
 				self.ml = 0
 				local neighbours = getneighbours({self.x, self.y})
 				local player_adjacent = false
 				for nb in all(neighbours) do
-					--if player is adjacent. attack
 					if nb[1] == actors[self.player_index].x and nb[2] == actors[self.player_index].y then 
 						player_adjacent = true
 					end
@@ -1568,7 +1496,6 @@ function enemy:update()
 				self.x = self.path[self.pathindex][1]
 				self.y = self.path[self.pathindex][2]
 
-				--if we landed on another enemy, move back and pass control to next enemy
 				for i=3, #actors do
 					if i != actor_index then
 						if self.x == actors[i].x and self.y == actors[i].y and actors[i].alive then
@@ -1584,9 +1511,6 @@ function enemy:update()
 			end
 		end
 	end
-
-	--centre camera (not sure why im doing this at the end of enemy:update. todo look at)
- 	set_camera(self.x * 8 - 64, self.y * 8 - 64)
 end
 
 function enemy:draw()	
@@ -1595,18 +1519,17 @@ function enemy:draw()
 	end
 end
 
---helper functions
-function item_num_to_string(item_num)
-	local ret = ""
-	if item_num == 2 then 
-		ret = "heal potion"
-	elseif item_num == 3 then 
-		ret = "magic restore"
-	end	
-	return ret
+function i_to_s(item_num)
+local ret = ""
+if item_num == 2 then 
+ret = "heal potion"
+elseif item_num == 3 then 
+ret = "magic restore"
+end	
+return ret
 end
 
-function closed_chest_at_surrounding_location(x,y)
+function ccasl(x,y)
 	local ret = nil
 	if (ret == nil) ret = ccat(x+1, y)
 	if (ret == nil) ret = ccat(x-1, y)
@@ -1618,10 +1541,8 @@ end
 function ccat(x,y)
 	local ret = cat(x,y)
 	if ret != nil then
-		printh("ret == chest")
 		if (ret.opened == true) then 
 			ret = nil
-			printh("chest open")
 		end
 	end
 	return ret
@@ -1640,7 +1561,6 @@ end
 function do_actor_attack(a, d)
 	gui.msg(a.name .. " attacks " .. d.name)
 
-	--human players get 2 sides of dice for defence, ai get 1
 	local d_dice_sides = 2
 	if d.human == nil then
 		d_dice_sides = 1
@@ -1648,7 +1568,6 @@ function do_actor_attack(a, d)
 		d.dp = d.armour[2]
 	end
 
-	--todo work out ap and dp based on equipment
 	if a.human != nil then
 		a.ap = a.wpn[2]
 	end
@@ -1661,21 +1580,14 @@ function do_actor_attack(a, d)
 	local attack_hits = 0
 	local defence_hits = 0
 
-	printh("num attack dice = " .. attack_dice)
-
-	--roll both sets
 	for i=1, attack_dice do	
 		local attack_die = flr(rnd(6))
 		
-		printh("attack_die: " .. attack_die)
-
-		if attack_die <= 2 then --attack die always has 3 sides
+		if attack_die <= 2 then
 			attack_hits += 1
 		end
 	end
 	gui.msg(a.name .. " rolls " .. attack_hits .. " attack")
-
-	printh("num defense dice = " .. defence_dice)
 
 	for i=1, defence_dice do
 		local defence_die = flr(rnd(6))
@@ -1683,9 +1595,7 @@ function do_actor_attack(a, d)
 			defence_hits += 1
 		end
 	end	
-	gui.msg(d.name .. " rolls " .. defence_hits .. " defence")
 
-	--do the math
 	if attack_hits > defence_hits then
 		local damage = attack_hits - defence_hits
 		d.bp -= damage
@@ -1722,16 +1632,7 @@ function init_mission(num)
 	rooms={}
 	init_rooms_array()
 
-	--restore map data
-	--for col=1, map_w do
-	--	for row=1, map_h do
-	--		mset(col, row, mget(col + map_w, row))
-	--	end
-	--end 
-	
-	--restore map data (clever dick way)
 	reload(0x2000, 0x2000, 0x1000)
-
 
 	mission = get_mission(num)	
 
@@ -1741,7 +1642,6 @@ function init_mission(num)
 		mset(dl[1], dl[2],48)
 	end	
 
-	--add end tile
 	mset(mission.end_tile[1]  , mission.end_tile[2]  , 64)
 	mset(mission.end_tile[1]+1, mission.end_tile[2]  , 65)
 	mset(mission.end_tile[1]  , mission.end_tile[2]+1, 80)
@@ -1752,7 +1652,6 @@ function init_mission(num)
 	actors[2].x = mission.starting_point[1] + 1
 	actors[2].y = mission.starting_point[2]
 
-	--clear all actors except for players todo use less tokenz
 	local p1 = actors[1]
 	local p2 = actors[2]
 	p1:reset()
@@ -1763,23 +1662,18 @@ function init_mission(num)
 
 	actor_index = 1
 
-	--parse enemies 
 	mission.enemies = parse_string_to_object(mission.enemies, 3)
-	--add the enemies
 	for en in all(mission.enemies) do
-		--create a new enemy based on the enemy data
 		local enemy = enemy:new()
 		enemy:init(en)
 		add(actors, enemy)
 	end	
 
-	--add the rocks
 	mission.rocks = parse_string_to_object(mission.rocks, 2)
 	for rk in all(mission.rocks) do
 		mset(rk[1], rk[2],50)
 	end	
 
-	--initialise chests
 	mission.chest_data = parse_string_to_object(mission.chest_data, 4)
 	chests={}
 	for ch in all (mission.chest_data) do
@@ -1797,8 +1691,6 @@ function parse_string_to_object(str, num_fields)
 	while #str > 0 do
 		
 		local obj = {}
-		printh(#str)
-		printh(str)
 		while #obj < num_fields do 
 			local d=sub(str,1,1)		 	
 		 	if d=="," or d == "|" then
@@ -1826,13 +1718,9 @@ function rooms_actor_is_in(actor)
 end
 
 function reveal_rooms(x,y)
-	printh("reveal_rooms" .. x .. " " .. y)
 	for rm in all(rooms) do
-		--check player collision with room
 		if cell_in_room(rm, x, y) then
 			rm.visible = true
-
-			--check all enemies collision with room
 			for i=2, #actors do
 				if cell_in_room(rm, actors[i].x, actors[i].y) then
 					if actors[i].alive == true then
@@ -1840,8 +1728,6 @@ function reveal_rooms(x,y)
 					end
 				end
 			end		
-
-			--todo check chest collision with rooms	
 			for ch in all(chests) do
 				if cell_in_room(rm, ch.x, ch.y) then
 					ch.visible = true
@@ -1906,7 +1792,7 @@ function enemy:calcpath(player_num)
 		for next in all(neighbours) do
 			local nextindex = vectoindex(next)
 
-			local new_cost = cost_so_far[vectoindex(current)]  + next[3] -- add extra costs here
+			local new_cost = cost_so_far[vectoindex(current)]  + next[3]
 
 			if (cost_so_far[nextindex] == nil) or (new_cost < cost_so_far[nextindex]) then
 				cost_so_far[nextindex] = new_cost
