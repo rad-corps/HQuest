@@ -86,7 +86,22 @@ rocks =
 15,16|]]
 ,
 --x,y,type,amount/strength
-chest_data = "5, 2, 2, -1|5, 3, 2, -1|14, 6, 1, 50|2, 10, 1, 100|2, 17, 1, 100|3, 17, 3, -1|4, 17, 1, 100|6, 16, 2, -1|7, 16, 1, 150|10, 16, 3, -1|14, 10, 1, 50|15, 10, 1, 50|14, 14, 1, 50|15, 14, 1, 50|",
+chest_data = 
+[[5, 2, 2, -1|
+5, 3, 2, -1|
+14, 6, 1, 50|
+2, 10, 1, 100|
+2, 17, 1, 100|
+3, 17, 3, -1|
+4, 17, 1, 100|				
+6, 16, 2, -1|
+7, 16, 1, 150|
+10, 16, 3, -1|
+14, 10, 1, 50|
+15, 10, 1, 50|
+14, 14, 1, 50|
+15, 14, 1, 50|]]
+,
 end_tile = {17,12}
 }
 	end
@@ -94,15 +109,14 @@ end_tile = {17,12}
 end
 
 function _init()
-	app_state = main_menu_state
-	animator = 5
-	animator2 = false
-	animator2_counter = 0
-	gold = 0
-	run_update = true
-	draw_all_player_stats = false
-	actors={}
-
+app_state = main_menu_state
+animator = 5
+animator2 = false
+animator2_counter = 0
+gold = 0
+run_update = true
+draw_all_player_stats = false
+actors={}
 player_types = {
 {"barbarian", "strong in combat", "no magic ability"},
 {"dwarf", "a good fighter", "some magic ability"},
@@ -159,25 +173,21 @@ spell_list = {
 {"sleep",1},
 {"protect",2}
 }
-
-	wallid = 32
-	actor_index=1
-	map_w=34
-	map_h=25
-	mission_num = 1
-	cam_cache = {0,0}
-
-	move_or_action_menu = {
-	"         move        ",
-	"        attack       ",
-	"      cast spell     ",
-	"       use item      ",
-	"     player stats    ",
-	"     finish turn     "
-	}
-
-	timer=0
-
+wallid = 32
+actor_index=1
+map_w=34
+map_h=25
+mission_num = 1
+cam_cache = {0,0}
+move_or_action_menu = {
+"         move        ",
+"        attack       ",
+"      cast spell     ",
+"       use item      ",
+"     player stats    ",
+"     finish turn     "
+}
+timer=0
 end
 
 function _update()
@@ -208,8 +218,8 @@ main_menu_state={
 
 	update = function()
 		if btnp(5) then 
-			character_select_state.init()
-			app_state = character_select_state
+			css.init()
+			app_state = css
 		end	
 	end,
 
@@ -218,30 +228,30 @@ main_menu_state={
 	end
 }
 
-character_select_state={
+css={
 	
 	init=function ()
-		character_select_state.selection = {1,1}
-		character_select_state.player_num = 1
+		css.selection = {1,1}
+		css.player_num = 1
 	end,
 
 	update = function()
-		local p_num = character_select_state.player_num
+		local p_num = css.player_num
 
-		if (btnp(0)) character_select_state.selection[p_num] = max(1, character_select_state.selection[p_num] - 1)
-		if (btnp(1)) character_select_state.selection[p_num] = min(3, character_select_state.selection[p_num] + 1)
+		if (btnp(0)) css.selection[p_num] = max(1, css.selection[p_num] - 1)
+		if (btnp(1)) css.selection[p_num] = min(3, css.selection[p_num] + 1)
 		if (btnp(4)) then
 			if p_num == 2 then
-				character_select_state.player_num -= 1
+				css.player_num -= 1
 			end
 		end
 		if (btnp(5)) then
 			local p = player:new()
-			p:init(player_types[character_select_state.selection[p_num]][1], p_num)
+			p:init(player_types[css.selection[p_num]][1], p_num)
 			actors[p_num] = p
-			character_select_state.player_num += 1
+			css.player_num += 1
 
-			if character_select_state.player_num > 2 then
+			if css.player_num > 2 then
 				game_state:init()
 				app_state = game_state
 			end
@@ -251,7 +261,7 @@ character_select_state={
 	draw = function()
 	
 		local y_offset = 0
-		local p_num = character_select_state.player_num
+		local p_num = css.player_num
 
 		for i=1, p_num do
 			if (i == 2) y_offset = 64
@@ -264,7 +274,7 @@ character_select_state={
 			
 			print("\x8bparty member " .. i .. "\x91", 28, 2 + y_offset, 7)
 			
-			local p_type = player_types[character_select_state.selection[i]]
+			local p_type = player_types[css.selection[i]]
 			local y_pos = 14 + y_offset
 
 			for i=1, #p_type do
@@ -277,7 +287,7 @@ character_select_state={
 				pal(13, 5, 0)
 			end
 
-			sspr((character_select_state.selection[i] - 1) * 8, 0, 8, 8, 64-8, 44 + y_offset, 16, 16)
+			sspr((css.selection[i] - 1) * 8, 0, 8, 8, 64-8, 44 + y_offset, 16, 16)
 			pal()
 		end
 
@@ -647,112 +657,103 @@ gui = {
 	end,
 
 	update = function()
-		if #gui.messages > 0 then
-			if (btnp(5) or btnp(0) or btnp(1) or btnp(2) or btnp(3)) then 
-				if gui.messages[1][2] != nil then
-					gui.messages[1][2]()
-				end
-				pop(gui.messages)
-			end
+if #gui.messages > 0 then
+	if (btnp(5) or btnp(0) or btnp(1) or btnp(2) or btnp(3)) then 
+		if gui.messages[1][2] != nil then
+			gui.messages[1][2]()
 		end
+		pop(gui.messages)
+	end
+end
 	end,
 
 	draw = function()
-		camera()
-		rectfill(2,118,127,126, 6)
-		rectfill(0,117,126,125, 13)
+camera()
+rectfill(2,118,127,126, 6)
+rectfill(0,117,126,125, 13)
 
-		local p = actors[actor_index]
-		local y_pos = 119
-		if #gui.messages > 0 then
-			local msg = gui.messages[1][1] .. " \x97"
-			print(msg, 64 - #msg*2 - 2, y_pos, 7)		
+local p = actors[actor_index]
+local y_pos = 119
+if #gui.messages > 0 then
+	local msg = gui.messages[1][1] .. " \x97"
+	print(msg, 64 - #msg*2 - 2, y_pos, 7)		
 
-		elseif actor_index < 3 then --draw player gui
-					
-			if p.state == "move" then	
-				print("       moves left " .. p.ml, 10, y_pos, 7)		
-			elseif p.state == "move_or_action" then					
-				print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, y_pos, 7)		
-			elseif p.state == "spell_select" then
-				local spell_name = "\x8b" .. spell_list[p.spell_selection][1] .. "\x91"					
-				print(spell_name,  64 - #spell_name * 2, y_pos, 7)	
-			elseif p.state == "attack_menu" then --todo: win tokens back by combining attack and spell menu
-				print(" \x8bselect enemy\x91   attack\x97", 5, y_pos, 7)			
-				--get cell to hilight
-				local en = p.adjacent_enemies[p.attack_selection]			
-				restore_camera()
-				
-				local en_x = en.x * 8
-				local en_y = en.y * 8
+elseif actor_index < 3 then
+			
+	if p.state == "move" then	
+		print("       moves left " .. p.ml, 10, y_pos, 7)		
+	elseif p.state == "move_or_action" then					
+		print("\x8b" .. move_or_action_menu[p.menu_selection] .. "\x91", 15, y_pos, 7)		
+	elseif p.state == "spell_select" then
+		local spell_name = "\x8b" .. spell_list[p.spell_selection][1] .. "\x91"					
+		print(spell_name,  64 - #spell_name * 2, y_pos, 7)	
+	elseif p.state == "attack_menu" then --todo: combine attack and spell menu
+		print(" \x8bselect enemy\x91   attack\x97", 5, y_pos, 7)			
+		local en = p.adjacent_enemies[p.attack_selection]			
 
-				rect(en_x, en_y, en_x + 7, en_y + 7, animator)			
+	elseif p.state == "spell_menu" then		
+		local spell_name = spell_list[p.spell_selection][1]
+		print(" \x8bcast ".. spell_name .." on\x91   cast\x97", 5, 120, 7)			
 
-			elseif p.state == "spell_menu" then		
-				--todo say spell name	
-				local spell_name = spell_list[p.spell_selection][1]
-				print(" \x8bcast ".. spell_name .." on\x91   cast\x97", 5, 120, 7)			
-				--get cell to hilight
-				local en = p.adjacent_enemies[p.attack_selection]			
-				restore_camera()
-				rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)				
-			elseif p.state == "give_menu" then			
-				print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
-				print("\x97give", 97, 120, 7)	
-				--get cell to hilight
-				local mt = p:get_mate()
-				restore_camera()
-				rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
-			end
+	elseif p.state == "give_menu" then			
+		print(" \x8b" .. item_num_to_string(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
+		print("\x97give", 97, 120, 7)	
+		--get cell to hilight
+		local mt = p:get_mate()
+		restore_camera()
+		rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
+	end
 
-			if p.state == "attack_menu" or p.state == "spell_menu" then				
-				local en = p.adjacent_enemies[p.attack_selection]
-				local rect1colour = 14
-				local rect2colour = 2
-				if en.human != nil then
-					en.dp = en.armour[2]
-					en.ap = en.wpn[2]
-					rect1colour = 13
-					rect2colour = 1
-				end
-				local en_x = en.x * 8 + 8
-				local en_y = en.y * 8
-				
-				
+	if p.state == "attack_menu" or p.state == "spell_menu" then	
 
-				local hilight_stats = {
-					en.name,
-					"body: " .. en.bp .. "/" .. en.max_bp,
-					"attack: " .. en.ap,
-					"defens: " .. en.dp,
-				}
+		local en = p.adjacent_enemies[p.attack_selection]			
+		restore_camera()
+		rect(en.x * 8, en.y * 8, en.x * 8 + 7, en.y * 8 + 7, animator)
 
-				if en.sleep > 0 then
-					add(hilight_stats, "asleep")
-				end
-				if en.protection > 0 then
-					add(hilight_stats, "protected")
-				end
+		local rect1colour = 14
+		local rect2colour = 2
+		if en.human != nil then
+			en.dp = en.armour[2]
+			en.ap = en.wpn[2]
+			rect1colour = 13
+			rect2colour = 1
+		end
+		local en_x = en.x * 8 + 8
+		local en_y = en.y * 8
+		
+		local hilight_stats = {
+			en.name,
+			"body: " .. en.bp .. "/" .. en.max_bp,
+			"attack: " .. en.ap,
+			"defens: " .. en.dp,
+		}
 
-				local rect_height = #hilight_stats * 8
-
-				rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + rect_height + 2, rect1colour)
-				rectfill(en_x, en_y, en_x + 40, en_y + rect_height, rect2colour)
-
-				local y_pos = en_y + 2
-
-				for str in all(hilight_stats) do
-					local colour = 7
-					if str == "asleep" or str == "protected" then
-						colour = 12
-					end
-					print(str, en_x + 2, y_pos, colour)
-					y_pos += 8
-				end
-			end
+		if en.sleep > 0 then
+			add(hilight_stats, "asleep")
+		end
+		if en.protection > 0 then
+			add(hilight_stats, "protected")
 		end
 
-		restore_camera()
+		local rect_height = #hilight_stats * 8
+
+		rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + rect_height + 2, rect1colour)
+		rectfill(en_x, en_y, en_x + 40, en_y + rect_height, rect2colour)
+
+		local y_pos = en_y + 2
+
+		for str in all(hilight_stats) do
+			local colour = 7
+			if str == "asleep" or str == "protected" then
+				colour = 12
+			end
+			print(str, en_x + 2, y_pos, colour)
+			y_pos += 8
+		end
+	end
+end
+
+restore_camera()
 	end
 }
 
