@@ -5,114 +5,93 @@ __lua__
 function get_mission(num)
 	local l_mission = {}
 	if num == 2 then 
-		l_mission = {
-			intro_text = "welcome to the dungeon",
-			complete_text = "proceed to the 3rd level",
-			starting_point = {2,4},
-			door_locations = 
-				[[3,1|
-				8,1|
-				11,3|
-				11,6|
-				9,11|
-				4,11|
-				3,13|
-				7,13|
-				9,13|
-				13,12|]],
-			--x,y,type
-			enemies =	
-				[[7,4,4|
-				7,7,4|
-				7,9,4|
-				2,7,4|
-				2,12,4|
-				6,14,4|
-				7,15,4|
-				10,14,4|]],
-			rocks = 
-				[[1,0|
-				15,0|
-				1,12|
-				15,8|
-				15,16|]]
-			,
-			--x,y,type,amount/strength
-			chest_data = 
-				[[5, 2, 2, -1|
-				5, 3, 2, -1|
-				14, 6, 1, 50|
-				2, 10, 1, 100|
-				2, 17, 1, 100|
-				3, 17, 3, -1|
-				4, 17, 1, 100|				
-				6, 16, 2, -1|
-				7, 16, 1, 150|
-				10, 16, 3, -1|
-				14, 10, 1, 50|
-				15, 10, 1, 50|
-				14, 14, 1, 50|
-				15, 14, 1, 50|]]
-			,
-			end_tile = {17,12}
-		}
+l_mission = {
+starting_point = {2,4},
+door_locations = 
+[[3,1|
+8,1|
+11,3|
+11,6|
+9,11|
+4,11|
+3,13|
+7,13|
+9,13|
+13,12|]],
+--x,y,type
+enemies =	
+[[7,4,4|
+7,7,4|
+7,9,4|
+2,7,4|
+2,12,4|
+6,14,4|
+7,15,4|
+10,14,4|]],
+rocks = 
+[[1,0|
+15,0|
+1,12|
+15,8|
+15,16|]]
+,
+--x,y,type,amount/strength
+chest_data = 
+[[5, 2, 2, -1|
+5, 3, 2, -1|
+14, 6, 1, 50|
+2, 10, 1, 100|
+2, 17, 1, 100|
+3, 17, 3, -1|
+4, 17, 1, 100|				
+6, 16, 2, -1|
+7, 16, 1, 150|
+10, 16, 3, -1|
+14, 10, 1, 50|
+15, 10, 1, 50|
+14, 14, 1, 50|
+15, 14, 1, 50|]]
+,
+end_tile = {17,12}
+}
 	elseif num == 1 then 
-		l_mission = {
-			intro_text = "welcome to the dungeon",
-			complete_text = "proceed to the 2nd level",
-			starting_point = {2,4},
-			door_locations = 
-				[[3,1|
-				8,1|
-				11,3|
-				11,6|
-				9,11|
-				4,11|
-				3,13|
-				7,13|
-				9,13|
-				13,12|]],
-			--x,y,type
-			enemies =	
-				[[7,4,1|
-				7,7,1|
-				7,9,2|
-				2,7,2|
-				2,12,2|
-				6,14,1|
-				7,15,2|
-				10,14,1|]],
-			rocks = 
-				[[1,0|
-				15,0|
-				1,12|
-				15,8|
-				15,16|]]
-			,
-			--x,y,type,amount/strength
-			chest_data = 
-				[[5, 2, 2, -1|
-				5, 3, 2, -1|
-				14, 6, 1, 50|
-				2, 10, 1, 100|
-				2, 17, 1, 100|
-				3, 17, 3, -1|
-				4, 17, 1, 100|				
-				6, 16, 2, -1|
-				7, 16, 1, 150|
-				10, 16, 3, -1|
-				14, 10, 1, 50|
-				15, 10, 1, 50|
-				14, 14, 1, 50|
-				15, 14, 1, 50|]]
-			,
-			end_tile = {17,12}
-		}
+l_mission = {
+starting_point = {2,4},
+door_locations = 
+[[3,1|
+8,1|
+11,3|
+11,6|
+9,11|
+4,11|
+3,13|
+7,13|
+9,13|
+13,12|]],
+--x,y,type
+enemies =	
+[[7,4,1|
+7,7,1|
+7,9,2|
+2,7,2|
+2,12,2|
+6,14,1|
+7,15,2|
+10,14,1|]],
+rocks = 
+[[1,0|
+15,0|
+1,12|
+15,8|
+15,16|]]
+,
+--x,y,type,amount/strength
+chest_data = "5, 2, 2, -1|5, 3, 2, -1|14, 6, 1, 50|2, 10, 1, 100|2, 17, 1, 100|3, 17, 3, -1|4, 17, 1, 100|6, 16, 2, -1|7, 16, 1, 150|10, 16, 3, -1|14, 10, 1, 50|15, 10, 1, 50|14, 14, 1, 50|15, 14, 1, 50|",
+end_tile = {17,12}
+}
 	end
 	return l_mission
 end
-
---pico 8 functions
 
 function _init()
 	app_state = main_menu_state
@@ -124,63 +103,62 @@ function _init()
 	draw_all_player_stats = false
 	actors={}
 
-	player_types = {
-			{"barbarian", "strong in combat", "no magic ability"},
-			{"dwarf", "a good fighter", "some magic ability"},
-			{"wizard", "weak defense and combat", "strong magic"}
-	}
+player_types = {
+{"barbarian", "strong in combat", "no magic ability"},
+{"dwarf", "a good fighter", "some magic ability"},
+{"wizard", "weak defense and combat", "strong magic"}
+}
 
-	equipment_table = {
-		{--weapons
-			{--barbarian
-				{"long sword", 3, 0, "3 attack"},
-				{"power sword", 4, 300, "4 attack"},
-				{"gold sword", 6, 1000, "6 attack"},
-				{"death sword", 8, 3000, "8 attack"}
-			},
-			{ --dwarf
-				{"short sword",2,0, "2 attack"},
-				{"axe", 3, 300, "3 attack"},
-				{"power axe", 5, 1000, "5 attack"},
-				{"magic axe", 6, 3000, "6 attack x2 magic str"} --double str magic
-			},
-			{ --wizard
-				{"staff", 1, 0, "1 attack"},
-				{"mighty staff", 2, 300, "2 attack"},
-				{"magic staff", 2, 1000, "2 attack x2 magic str"}, --half cost magic
-				{"wizard weapon", 3, 3000, "3 attack x4 magic str"}, --half cost magic, double str
-			}
-		},
-		{ --armour
-			{"tunic", 1, 300, "1 defence die"},
-			{"iron armour", 2, 1000, "2 defence dice"},
-			{"graphite suit", 4, 3000, "4 defence dice"},
-			{"golden armour", 6, 10000, "6 defence dice"}
-		},
-		{ --items
-			{"heal potion",1,150, "heals 4 body points"},
-			{"magic restore",2,250, "restores 4 magic points"}
-		}
-	}
+equipment_table = {
+{
+{--barbarian
+{"long sword", 3, 0, "3 attack"},
+{"power sword", 4, 300, "4 attack"},
+{"gold sword", 6, 1000, "6 attack"},
+{"death sword", 8, 3000, "8 attack"}
+},
+{ --dwarf
+{"short sword",2,0, "2 attack"},
+{"axe", 3, 300, "3 attack"},
+{"power axe", 5, 1000, "5 attack"},
+{"magic axe", 6, 3000, "6 attack x2 magic str"}
+},
+{ --wizard
+{"staff", 1, 0, "1 attack"},
+{"mighty staff", 2, 300, "2 attack"},
+{"magic staff", 2, 1000, "2 attack x2 magic str"},
+{"wizard weapon", 3, 3000, "3 attack x4 magic str"},
+}
+},
+{
+{"tunic", 1, 300, "1 defence die"},
+{"iron armour", 2, 1000, "2 defence dice"},
+{"graphite suit", 4, 3000, "4 defence dice"},
+{"golden armour", 6, 10000, "6 defence dice"}
+},
+{
+{"heal potion",1,150, "heals 4 body points"},
+{"magic restore",2,250, "restores 4 magic points"}
+}
+}
 	
-	enemy_type = {--name, moves, attack, defence, body, mind (unused), sprite
-	{"goblin",7,2,1,1,1, 16},
-	{"skeleton",6,2,2,1,0, 17},
-	{"zombie",5,2,3,1,0,18},
-	{"orc",8,2,2,2,2,19},
-	{"fimir",6,3,3,2,3,20},
-	{"mummy",4,3,4,2,0,21},
-	{"chaos warrior",7,4,4,3,3,22},
-	{"gargoyle",6,4,5,3,4,23},
-	}
- 
-	--string, magic cost
-	spell_list = {
-	{"heal",2},
-	{"fire",2},
-	{"sleep",1},
- 	{"protect",2}
-	}
+enemy_type = {
+{"goblin",7,2,1,1,1, 16},
+{"skeleton",6,2,2,1,0, 17},
+{"zombie",5,2,3,1,0,18},
+{"orc",8,2,2,2,2,19},
+{"fimir",6,3,3,2,3,20},
+{"mummy",4,3,4,2,0,21},
+{"chaos warrior",7,4,4,3,3,22},
+{"gargoyle",6,4,5,3,4,23},
+}
+ 	
+spell_list = {
+{"heal",2},
+{"fire",2},
+{"sleep",1},
+{"protect",2}
+}
 
 	wallid = 32
 	actor_index=1
@@ -224,14 +202,8 @@ function _draw()
 
 	app_state:draw()
 
-	--debugging
-	-- camera()
-	-- print("cpu: " .. stat(1) .. " ram: " .. stat(0), 10,110, 7)
-	-- restore_camera()
 end
 
---app states
-------------------------------------------
 main_menu_state={
 
 	update = function()
@@ -264,7 +236,6 @@ character_select_state={
 			end
 		end
 		if (btnp(5)) then
-			--init players and enemies
 			local p = player:new()
 			p:init(player_types[character_select_state.selection[p_num]][1], p_num)
 			actors[p_num] = p
@@ -278,8 +249,7 @@ character_select_state={
 	end,
 
 	draw = function()
-		--rectfill(0,0,128,128, 4)
-		
+	
 		local y_offset = 0
 		local p_num = character_select_state.player_num
 
@@ -302,13 +272,11 @@ character_select_state={
 				y_pos += 10
 			end
 
-			--draw player sprite
 			if i == 2 then
 				pal(5, 13, 0)
 				pal(13, 5, 0)
 			end
 
-			--sspr(p.sprite * 8, 0, 8, 8, 95, 105, 16, 16)
 			sspr((character_select_state.selection[i] - 1) * 8, 0, 8, 8, 64-8, 44 + y_offset, 16, 16)
 			pal()
 		end
@@ -325,23 +293,21 @@ game_state={
 
 		if gui.active_messages() then 
 			gui.update()
-		else			
-			--update only the current actor
+		else						
 			if actors[actor_index].alive == true then
 				actors[actor_index]:update()
 			else
 				increment_actor()
 			end
 
-			--game over condition
 			if actors[1].alive == false and actors[2].alive == false then
 				run_update = false
-				gui.add_message("your team has been killed")
-				gui.add_message("game over", function()
+				gui.msg("your team has been killed")
+				gui.msg("game over", function()
 					camera()
 					_init()
 				end)				
-			else --end level condition
+			else
 				local p1 = actors[1]
 				local p2 = actors[2]
 				local at_end = true
@@ -352,16 +318,14 @@ game_state={
 					at_end = false
 				end
 				if at_end then
-					gui.add_message("advance to next level", function()
-						shop_state.init()
-						app_state = shop_state
+					gui.msg("advance to next level", function()
+						ss.init()
+						app_state = ss
 						end)
 				end
 			end
 
 		end
-	
-
 	end,
 
 	draw=function()
@@ -404,7 +368,7 @@ function draw_active_actor_stats()
 		local a_info = {
 			a.name,
 		 	"body:" .. a.bp .. "/" .. a.max_bp .. " magic:" .. a.mp .. "/" .. a.max_mp .. " gold:" .. gold,
-			a.weapon[1] .. ":" .. a.weapon[4],
+			a.wpn[1] .. ":" .. a.wpn[4],
 			a.armour[1] .. ":" .. a.armour[4]
 		}
 
@@ -414,8 +378,6 @@ function draw_active_actor_stats()
 		if a.sleep > 0 then 
 			add(a_info, "asleep: " .. a.protect)
 		end		
-
-		--list items
 
 		if #a.items > 0 then
 			add(a_info, "")
@@ -447,83 +409,83 @@ function draw_active_actor_stats()
 
 end
 
-shop_state = {
+ss = {
 
 	init = function()
-		shop_state.categories = { 
+		ss.categories = { 
 			"weapons",
 			"armour",
 			"items"
 		}
 
-		shop_state.player_num = 1
-		shop_state.item_num = 1
-		shop_state.browsing_selection = 1
-		shop_state.y_selection = 1
+		ss.player_num = 1
+		ss.item_num = 1
+		ss.browsing_selection = 1
+		ss.y_selection = 1
 		camera()
 	end,
 
 	update = function()
 		
 		if (btnp(3)) then --down
-			shop_state.y_selection += 1
-			if (shop_state.y_selection == 3) shop_state.y_selection = 5
-			shop_state.y_selection = min(shop_state.y_selection, 7)
+			ss.y_selection += 1
+			if (ss.y_selection == 3) ss.y_selection = 5
+			ss.y_selection = min(ss.y_selection, 7)
 		end
 		if (btnp(2)) then  --up
-			shop_state.y_selection -= 1
-			if (shop_state.y_selection == 4) shop_state.y_selection = 2
-			shop_state.y_selection = max(1, shop_state.y_selection) --dont go below 1	
+			ss.y_selection -= 1
+			if (ss.y_selection == 4) ss.y_selection = 2
+			ss.y_selection = max(1, ss.y_selection) --dont go below 1	
 		end
 
 		local x_val = 0
 		if (btnp(0)) x_val -= 1
 		if (btnp(1)) x_val += 1
 
-		local y_sel = shop_state.y_selection
+		local y_sel = ss.y_selection
 
 		if y_sel == 1 then --browse
-			shop_state.browsing_selection += x_val
-			shop_state.browsing_selection = max(shop_state.browsing_selection, 1)
-			shop_state.browsing_selection = min(#shop_state.categories, shop_state.browsing_selection)
-			if (x_val != 0) shop_state.item_num = 1
+			ss.browsing_selection += x_val
+			ss.browsing_selection = max(ss.browsing_selection, 1)
+			ss.browsing_selection = min(#ss.categories, ss.browsing_selection)
+			if (x_val != 0) ss.item_num = 1
 		elseif y_sel == 2 then --item
 
 			local list_sz = 1
-			local b_sel = shop_state.browsing_selection
+			local b_sel = ss.browsing_selection
 
 			if b_sel == 1 then --weapon
-				list_sz = #equipment_table[b_sel][shop_state.player_num]
+				list_sz = #equipment_table[b_sel][ss.player_num]
 			else --armour or item
 				list_sz = #equipment_table[b_sel]
 			end
 
-			shop_state.item_num += x_val
-			shop_state.item_num = max(shop_state.item_num, 1)
-			shop_state.item_num = min(list_sz, shop_state.item_num)
+			ss.item_num += x_val
+			ss.item_num = max(ss.item_num, 1)
+			ss.item_num = min(list_sz, ss.item_num)
 		elseif y_sel == 6 then --player num
-			shop_state.player_num += x_val
-			shop_state.player_num = max(shop_state.player_num, 1)
-			shop_state.player_num = min(2, shop_state.player_num)
+			ss.player_num += x_val
+			ss.player_num = max(ss.player_num, 1)
+			ss.player_num = min(2, ss.player_num)
 		end
 
 		if btnp(5) then 
-			if shop_state.y_selection == 5 then --x / buy
-				local b_item = shop_state.browsing_item
+			if ss.y_selection == 5 then --x / buy
+				local b_item = ss.browsing_item
 				if gold >= b_item[3] then
 					gold -= b_item[3]
-					local p = actors[shop_state.player_num]
-					if shop_state.browsing_selection == 1 then --weapon
-						p.weapon = b_item
-					elseif shop_state.browsing_selection == 2 then--armour
+					local p = actors[ss.player_num]
+					if ss.browsing_selection == 1 then --weapon
+						p.wpn = b_item
+					elseif ss.browsing_selection == 2 then--armour
 						p.armour = b_item
-					elseif shop_state.browsing_selection == 3 then--item
+					elseif ss.browsing_selection == 3 then--item
 						add(p.items, b_item[2])
 					end
 				else
 					printh("can not afford " .. b_item[1])
 				end
-			elseif shop_state.y_selection == 7 then --progress to next mission
+			elseif ss.y_selection == 7 then --progress to next mission
 				mission_num += 1
 				game_state.init()
 				app_state = game_state
@@ -532,7 +494,7 @@ shop_state = {
 	end,
 
 	draw = function()
-		local p_num = shop_state.player_num
+		local p_num = ss.player_num
 		local rect_colour = 5
 		if (p_num == 2) rect_colour = 13
 		rectfill(0,0,128,128,rect_colour)
@@ -552,13 +514,13 @@ shop_state = {
 		--rectfill(5,44, 128-5, 52, 9)
 		
 		local p = actors[p_num]
-		local b_sel = shop_state.browsing_selection
-		local i_num = shop_state.item_num
-		local y_sel = shop_state.y_selection
+		local b_sel = ss.browsing_selection
+		local i_num = ss.item_num
+		local y_sel = ss.y_selection
 		local w_tbl = equipment_table[1]
 		local a_tbl = equipment_table[2]
 		
-		local b_item = shop_state.browsing_item
+		local b_item = ss.browsing_item
 
 		if b_sel == 1 then --weapon
 			b_item = equipment_table[b_sel][p.type][i_num]
@@ -566,15 +528,15 @@ shop_state = {
 			b_item = equipment_table[b_sel][i_num]
 		end
 
-		shop_state.browsing_item = b_item
+		ss.browsing_item = b_item
 
 		local shop_strings = {
-			"current weapon: " .. p.weapon[1],
-			p.weapon[4],
+			"current weapon: " .. p.wpn[1],
+			p.wpn[4],
 			"current armour: " .. p.armour[1],
 			p.armour[4],
 			"gold: " .. gold,
-			shop_state.categories[b_sel],
+			ss.categories[b_sel],
 			b_item[1],
 			b_item[4],
 			b_item[3] .. " gold",
@@ -611,32 +573,6 @@ shop_state = {
 	end
 }
 
--- player_stats_state = {
--- 	update = function()
--- 		if (btnp(4)) app_state = game_state
--- 	end,
-
--- 	draw = function()
--- 		camera()
--- 		rectfill(0,0,128,128, 4)
--- 		local p = actors[actor_index]
--- 		--todo add weapon and armour names
--- 		print("name: " .. p.name, 10, 10, 7)
--- 		print("att: " .. p.weapon[2], 10, 20, 7)
--- 		print("def: " .. p.armour[2], 50, 20, 7)
--- 		print("body: " .. p.bp, 90, 20, 7)
--- 		print("magic: " .. p.mp, 10, 30, 7)
--- 		print("shared gold: " .. gold, 50, 30, 7)
--- 		print("items:", 10, 40, 7)
--- 		local y_offset = 50
--- 		for it in all(p.items) do
--- 			print(item_num_to_string(it), 10, y_offset, 7)
--- 			y_offset += 10
--- 		end
--- 		restore_camera()
--- 	end
--- }
-
 item_select_state = {
 	update = function ()
 		local p = actors[actor_index]
@@ -654,14 +590,14 @@ item_select_state = {
 				local old_bp = p.bp			
 				p.bp += 4
 				if(p.bp > p.max_bp) p.bp = p.max_bp
-				gui.add_message("used potion of heal")
-				gui.add_message(p.bp - old_bp .. " body restored" )
+				gui.msg("used potion of heal")
+				gui.msg(p.bp - old_bp .. " body restored" )
 			elseif item == 3 then --todo magic restore
 				local old_mp = p.mp			
 				p.mp += 4
 				p.mp = min(p.mp, p.max_mp)
-				gui.add_message("used magic restore")
-				gui.add_message(p.mp - old_mp .. " magic restored" )
+				gui.msg("used magic restore")
+				gui.msg(p.mp - old_mp .. " magic restored" )
 			end
 			del(p.items, p.items[p.item_selection])
 			app_state = game_state
@@ -693,7 +629,7 @@ item_select_state = {
 gui = {
 	messages = {},
 	
-	add_message = function (msg, callback)
+	msg = function (msg, callback)
 		local gui_msg = {msg, callback}
 
 		--dont ever add a duplicate message
@@ -775,7 +711,7 @@ gui = {
 				local rect2colour = 2
 				if en.human != nil then
 					en.dp = en.armour[2]
-					en.ap = en.weapon[2]
+					en.ap = en.wpn[2]
 					rect1colour = 13
 					rect2colour = 1
 				end
@@ -979,7 +915,7 @@ function player:init(type, index)
 		self.type = 3
 	end
 
-	self.weapon = weapons[self.type][1]
+	self.wpn = weapons[self.type][1]
 
 	self.ml = 0
 	self.x = 0
@@ -1018,12 +954,12 @@ function player:update()
 	end
 
 	if self.sleep >= 2 then
-		gui.add_message(self.name .. " is asleep")
+		gui.msg(self.name .. " is asleep")
 		self.sleep -= 1
 		increment_actor()
 		do return end
 	elseif self.sleep == 1 then
-		gui.add_message(self.name .. " woke up")
+		gui.msg(self.name .. " woke up")
 		self.sleep -= 1
 	end
 
@@ -1063,7 +999,7 @@ function player:do_give_menu()
 		--copy the item to our mate
 		add(mate.items, self.items[self.item_selection])
 
-		gui.add_message("given " .. item_num_to_string(self.items[self.item_selection]))
+		gui.msg("given " .. item_num_to_string(self.items[self.item_selection]))
 
 		--remove the item from ourselves
 		del(self.items, self.item_selection)
@@ -1118,7 +1054,7 @@ function player:move()
 	if self.movement_dice_rolled == false then
 		self.ml = player:rollmovementdice()
 		self.dice = self.ml
-		gui.add_message("player rolled: " .. self.ml)	
+		gui.msg("player rolled: " .. self.ml)	
 		self.movement_dice_rolled = true		
 		do return end
 	end
@@ -1143,14 +1079,14 @@ function player:move()
 			if ( ch != nil and ch.opened == false) then 		
 				if ch.chest_type == 1 then --gold
 					--display what is in it through the gui
-					gui.add_message("you found " .. ch.amount .. " gold")
+					gui.msg("you found " .. ch.amount .. " gold")
 
 					--add the contents to the player's inventory	
 					--gold is now global
 					--self.g += ch.amount 
 					gold += ch.amount
 				elseif ch.chest_type >= 2 then --item 					
-					gui.add_message("you found " .. item_num_to_string(ch.chest_type))
+					gui.msg("you found " .. item_num_to_string(ch.chest_type))
 					add(self.items, ch.chest_type)
 				end
 				
@@ -1208,12 +1144,12 @@ function player:move()
 
 		--do we have at least 2 moves left?
 		if self.ml < 2 or self:check_simple_collision() == true then
-			gui.add_message("can not pass")
+			gui.msg("can not pass")
 			self.x = prevx
 			self.y = prevy
 
 		else --success
-			gui.add_message("passed player")
+			gui.msg("passed player")
 			self.ml -= 1
 		end
 	end
@@ -1237,7 +1173,7 @@ function player:check_simple_collision()
 	local collided = false
 
  	--check collision with walls, rocks and chests
-	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or chest_at_location(self.x, self.y) != nil)	then
+	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or cat(self.x, self.y) != nil)	then
 		collided = true
 	end
 
@@ -1320,13 +1256,13 @@ function player:do_move_or_action_menu()
 		elseif self.menu_selection == 2 then --attack						
 			if self.action_used == false then
 				self.adjacent_enemies = self:get_adjacent_enemies()
-				if (#self.adjacent_enemies == 0) gui.add_message("no enemy to attack")
+				if (#self.adjacent_enemies == 0) gui.msg("no enemy to attack")
 				if (#self.adjacent_enemies > 0) then
 					self.state = "attack_menu"
 					self.attack_selection = 1
 				end
 			else
-				gui.add_message("action already performed")
+				gui.msg("action already performed")
 			end
 		elseif self.menu_selection == 3 then --cast spell						
 			printh("cast spell selected")
@@ -1334,14 +1270,14 @@ function player:do_move_or_action_menu()
 				self.state = "spell_select"
 				self.spell_selection = 1			
 			else
-				gui.add_message("action already performed")
+				gui.msg("action already performed")
 			end
 		elseif self.menu_selection == 4 then --use item
 			app_state = item_select_state	
 		elseif self.menu_selection == 5 then --player stats
 			--app_state = player_stats_state
 			draw_all_player_stats = true
-			gui.add_message("continue", function()
+			gui.msg("continue", function()
 				draw_all_player_stats = false
 				end)
 
@@ -1409,7 +1345,7 @@ function player:cast_spell(spell, spell_receiver)
 		end
 
 		--do we have a modifier for the magic power? 
-		local weapon_name = self.weapon[1]
+		local weapon_name = self.wpn[1]
 		local magic_multiplier = 1
 		if(weapon_name == "magic axe" or weapon_name == "magic staff") magic_multiplier = 2
 		if(weapon_name == "wizard weapon") magic_multiplier = 4
@@ -1417,30 +1353,30 @@ function player:cast_spell(spell, spell_receiver)
 		if spell[1] == "heal" then --heal
 			local old_bp = spell_receiver.bp
 			spell_receiver.bp = min(spell_receiver.bp + 2 * magic_multiplier, spell_receiver.max_bp)
-			gui.add_message("heal cast on " .. spell_receiver.name)
-			gui.add_message(spell_receiver.bp - old_bp .. " body recovered")
+			gui.msg("heal cast on " .. spell_receiver.name)
+			gui.msg(spell_receiver.bp - old_bp .. " body recovered")
 		elseif spell[1] == "fire" then --fire
 			local old_bp = spell_receiver.bp
-			gui.add_message("fire cast on " .. spell_receiver.name)
+			gui.msg("fire cast on " .. spell_receiver.name)
 			spell_receiver.bp = max(0, spell_receiver.bp - 1 * magic_multiplier)
-			gui.add_message(spell_receiver.name .. " lost " ..old_bp-spell_receiver.bp .. " body point(s)")
+			gui.msg(spell_receiver.name .. " lost " ..old_bp-spell_receiver.bp .. " body point(s)")
 			if spell_receiver.bp <= 0 then
 
-				gui.add_message(spell_receiver.name .. " was killed", function()
+				gui.msg(spell_receiver.name .. " was killed", function()
 						spell_receiver.alive = false
 						spell_receiver.active = false
 					end)
 			end
 		elseif spell[1] == "sleep" then --sleep
 			spell_receiver.sleep = magic_multiplier + 1
-			gui.add_message("sleep cast on " .. spell_receiver.name)
+			gui.msg("sleep cast on " .. spell_receiver.name)
 		elseif spell[1] == "protect" then --protection
 			spell_receiver.protection = 2 * magic_multiplier
-			gui.add_message("protect cast on " .. spell_receiver.name)
+			gui.msg("protect cast on " .. spell_receiver.name)
 		end
 		self.state = "move_or_action"
 	else
-		gui.add_message("not enough mp")
+		gui.msg("not enough mp")
 	end
 end
 
@@ -1564,12 +1500,12 @@ function enemy:update()
 
 	--todo put this somewhere common for player and enemy
 	if self.sleep >= 2 then
-		gui.add_message(self.name .. " is asleep")
+		gui.msg(self.name .. " is asleep")
 		self.sleep -= 1
 		increment_actor()
 		do return end
 	elseif self.sleep == 1 then
-		gui.add_message(self.name .. " woke up")
+		gui.msg(self.name .. " woke up")
 		self.sleep -= 1
 	end
 
@@ -1652,20 +1588,6 @@ function enemy:update()
  	set_camera(self.x * 8 - 64, self.y * 8 - 64)
 end
 
--- function enemy:get_adjacent_player()
--- 	local ret = {}
-
--- 	local neighbour_tiles = getneighbours({self.x, self.y})
-
--- 	for neighbour in all (neighbour_tiles) do
--- 		if neighbour[1] == actor[1].x and neighbour[2] == actor[1].y then --this is the traversal cost. cost of 6 is an enemy
--- 			add(ret, get_actor_on_tile(neighbour[1], neighbour[2]))
--- 		end
--- 	end
-
--- 	return ret
--- end
-
 function enemy:draw()	
 	if self.active == true then 
 		spr(self.sprite, self.x * 8, self.y * 8)
@@ -1674,7 +1596,7 @@ end
 
 --helper functions
 function item_num_to_string(item_num)
-	ret = item_num .. " not implemented"
+	local ret = ""
 	if item_num == 2 then 
 		ret = "heal potion"
 	elseif item_num == 3 then 
@@ -1685,15 +1607,15 @@ end
 
 function closed_chest_at_surrounding_location(x,y)
 	local ret = nil
-	if (ret == nil) ret = closed_chest_at_location(x+1, y)
-	if (ret == nil) ret = closed_chest_at_location(x-1, y)
-	if (ret == nil) ret = closed_chest_at_location(x, y+1)
-	if (ret == nil) ret = closed_chest_at_location(x, y-1)
+	if (ret == nil) ret = ccat(x+1, y)
+	if (ret == nil) ret = ccat(x-1, y)
+	if (ret == nil) ret = ccat(x, y+1)
+	if (ret == nil) ret = ccat(x, y-1)
 	return ret
 end
 
-function closed_chest_at_location(x,y)
-	local ret = chest_at_location(x,y)
+function ccat(x,y)
+	local ret = cat(x,y)
 	if ret != nil then
 		printh("ret == chest")
 		if (ret.opened == true) then 
@@ -1704,8 +1626,7 @@ function closed_chest_at_location(x,y)
 	return ret
 end
 
---todo, shouldnt need this function. use sprite flags instead
-function chest_at_location(x,y)
+function cat(x,y)
 	local ret = nil
 	for ch in all(chests) do
 		if ch.x == x and ch.y == y then
@@ -1715,28 +1636,26 @@ function chest_at_location(x,y)
 	return ret
 end
 
-function do_actor_attack(attacker, defender)
-	gui.add_message(attacker.name .. " attacks " .. defender.name)
+function do_actor_attack(a, d)
+	gui.msg(a.name .. " attacks " .. d.name)
 
 	--human players get 2 sides of dice for defence, ai get 1
-	local defender_def_dice_sides = 2
-	if defender.human == nil then
-		defender_def_dice_sides = 1
+	local d_dice_sides = 2
+	if d.human == nil then
+		d_dice_sides = 1
 	else
-		defender.dp = defender.armour[2]
+		d.dp = d.armour[2]
 	end
 
 	--todo work out ap and dp based on equipment
-	if attacker.human != nil then
-		attacker.ap = attacker.weapon[2]
+	if a.human != nil then
+		a.ap = a.wpn[2]
 	end
 
-	--get number of attacker's attack dice
-	local attack_dice = attacker.ap
+	local attack_dice = a.ap
 
-	--get number of defender's defence dice
-	local defence_dice = defender.dp
-	defence_dice += defender.protection
+	local defence_dice = d.dp
+	defence_dice += d.protection
 
 	local attack_hits = 0
 	local defence_hits = 0
@@ -1753,45 +1672,45 @@ function do_actor_attack(attacker, defender)
 			attack_hits += 1
 		end
 	end
-	gui.add_message(attacker.name .. " rolls " .. attack_hits .. " attack")
+	gui.msg(a.name .. " rolls " .. attack_hits .. " attack")
 
 	printh("num defense dice = " .. defence_dice)
 
 	for i=1, defence_dice do
 		local defence_die = flr(rnd(6))
-		if defence_die < defender_def_dice_sides then 
+		if defence_die < d_dice_sides then 
 			defence_hits += 1
 		end
 	end	
-	gui.add_message(defender.name .. " rolls " .. defence_hits .. " defence")
+	gui.msg(d.name .. " rolls " .. defence_hits .. " defence")
 
 	--do the math
 	if attack_hits > defence_hits then
 		local damage = attack_hits - defence_hits
-		defender.bp -= damage
-		gui.add_message(defender.name .. " loses " .. damage .. " bp")
+		d.bp -= damage
+		gui.msg(d.name .. " loses " .. damage .. " bp")
 		
-		if defender.protection > 0 then
-			defender.protection = 0
-			gui.add_message(defender.name .. "'s protect lost")
+		if d.protection > 0 then
+			d.protection = 0
+			gui.msg(d.name .. "'s protect lost")
 		end
-		if defender.bp > 0 then
-			gui.add_message(defender.name .. " has " .. defender.bp .. " bp left")
+		if d.bp > 0 then
+			gui.msg(d.name .. " has " .. d.bp .. " bp left")
 
-		elseif defender.bp <= 0 then
+		elseif d.bp <= 0 then
 
-			gui.add_message(defender.name .. " has been killed", function()
-				defender.alive = false
-				defender.active = false
+			gui.msg(d.name .. " has been killed", function()
+				d.alive = false
+				d.active = false
 				end)
 		end
 	else
 		if attack_hits == 0 then 
-			gui.add_message(attacker.name .. " misses")
-		elseif defender.protection > 0 then
-			gui.add_message(defender.name .. " was protected")
+			gui.msg(a.name .. " misses")
+		elseif d.protection > 0 then
+			gui.msg(d.name .. " was protected")
 		else
-			gui.add_message(defender.name .. " dodged attack")
+			gui.msg(d.name .. " dodged attack")
 		end
 	end
 
@@ -1939,30 +1858,29 @@ function cell_in_room(rm,x,y)
 end
 
 function get_actor_on_tile(x,y)
-	local ret = nil
+local ret = nil
 
-	for i=1,#actors do
-		if actors[i].x == x and actors[i].y == y then
-			ret = actors[i]
-		end
-	end
-	return ret
+for i=1,#actors do
+if actors[i].x == x and actors[i].y == y then
+ret = actors[i]
+end
+end
+return ret
 end
 
 function set_camera(x,y)
-	cam_cache = {x,y}
-	camera(x,y)
+cam_cache = {x,y}
+camera(x,y)
 end
 
 function restore_camera()
-	camera(cam_cache[1], cam_cache[2])
+camera(cam_cache[1], cam_cache[2])
 end
 
---astar specific
 function enemy:calcpath(player_num)
 	
-	local start = {self.x, self.y} --enemy pos
-	local goal = {actors[player_num].x, actors[player_num].y} --player pos
+	local start = {self.x, self.y}
+	local goal = {actors[player_num].x, actors[player_num].y}
 
 	local frontier = {}
 	local came_from = {}
@@ -1974,13 +1892,9 @@ function enemy:calcpath(player_num)
 	came_from[vectoindex(start)] = nil
 	cost_so_far[vectoindex(start)] = 0
 	
-
-	--when loop first enters. #frontier == 1 (start space)
 	while (#frontier > 0 and #frontier < 1000) do
-		--current is a vec2
 		current = popend(frontier)
 		
-		--we found the goal
 		if vectoindex(current) == vectoindex(goal) then
 			goalfound = true
 			break
@@ -2003,7 +1917,7 @@ function enemy:calcpath(player_num)
 		end
  	end
 	
-	if goalfound != true then --why didnt we find it????
+	if goalfound != true then
 		printh("error: goal not found!" .. "frontier len: " .. #frontier)				
 
 	else	
@@ -2024,110 +1938,99 @@ function enemy:calcpath(player_num)
 	end
 end
 
--- pop the last element off a table
 function popend(t)
- local top = t[#t]
- del(t,t[#t])
- return top[1]
+local top = t[#t]
+del(t,t[#t])
+return top[1]
 end
 
 function reverse(t)
- for i=1,(#t/2) do
-  local temp = t[i]
-  local oppindex = #t-(i-1)
-  t[i] = t[oppindex]
-  t[oppindex] = temp
- end
+for i=1,(#t/2) do
+local temp = t[i]
+local oppindex = #t-(i-1)
+t[i] = t[oppindex]
+t[oppindex] = temp
+end
 end
 
--- translate a 2d x,y coordinate to a 1d index and back again
 function vectoindex(vec)
- return maptoindex(vec[1],vec[2])
+return maptoindex(vec[1],vec[2])
 end
 function maptoindex(x, y)
- return ((x+1) * map_w) + y
+return ((x+1) * map_w) + y
 end
 
--- pop the first element off a table (unused
 function pop(t)
- local top = t[1]
- for i=1,(#t) do
-  if i == (#t) then
-   del(t,t[i])
-  else
-   t[i] = t[i+1]
-  end
- end
- return top
+local top = t[1]
+for i=1,(#t) do
+if i == (#t) then
+del(t,t[i])
+else
+t[i] = t[i+1]
+end
+end
+return top
 end
 
--- manhattan distance on a square grid
 function heuristic(a, b)
- return abs(a[1] - b[1]) + abs(a[2] - b[2])
+return abs(a[1] - b[1]) + abs(a[2] - b[2])
 end
 
--- find all existing neighbours of a position that are not walls
 function getneighbours(pos)
-	local neighbours={}
-	local x = pos[1]
-	local y = pos[2]
+local neighbours={}
+local x = pos[1]
+local y = pos[2]
 
-	addneighbourtileif(neighbours, x-1, y)
-	addneighbourtileif(neighbours, x+1, y)
-	addneighbourtileif(neighbours, x, y-1)
-	addneighbourtileif(neighbours, x, y+1)
+addneighbourtileif(neighbours, x-1, y)
+addneighbourtileif(neighbours, x+1, y)
+addneighbourtileif(neighbours, x, y-1)
+addneighbourtileif(neighbours, x, y+1)
 
--- for making diagonals
-	if (x+y) % 2 == 0 then
-		reverse(neighbours)
-	end
-	return neighbours
+if (x+y) % 2 == 0 then
+reverse(neighbours)
+end
+return neighbours
 end
 
 function addneighbourtileif(neighbours, x, y)
-	local obstructed = true
-
-	if x >= 0 and x < map_w and y >= 0 and y < map_h then
-		if mget(x, y) > wallid 	then				
-			obstructed = false						
-			--iterate through actor_list 			
-			for i=3, #actors do
-				if i != actor_index then
-					if x == actors[i].x and y == actors[i].y and actors[i].alive == true then
-						obstructed = true
-						add(neighbours,{x,y,6})
-						return
-					end
-				end
-			end
-		end
-	end
-
-	if ( obstructed == false) then
-		add(neighbours,{x,y,1})
-	end
+local obstructed = true
+if x >= 0 and x < map_w and y >= 0 and y < map_h then
+if mget(x, y) > wallid 	then				
+obstructed = false						
+for i=3, #actors do
+if i != actor_index then
+if x == actors[i].x and y == actors[i].y and actors[i].alive == true then
+obstructed = true
+add(neighbours,{x,y,6})
+return
+end
+end
+end
+end
+end
+if ( obstructed == false) then
+add(neighbours,{x,y,1})
+end
 end
 
--- insert into table and sort by priority
 function insert(t, val, p)
- if #t >= 1 then
-  add(t, {})
-  for i=(#t),2,-1 do
-   
-   local next = t[i-1]
-   if p < next[2] then
-    t[i] = {val, p}
-    return
-   else
-    t[i] = next
-   end
-  end
-  t[1] = {val, p}
- else
-  add(t, {val, p}) 
- end
-end
+if #t >= 1 then
+add(t, {})
+for i=(#t),2,-1 do
 
+local next = t[i-1]
+if p < next[2] then
+t[i] = {val, p}
+return
+else
+t[i] = next
+end
+end
+t[1] = {val, p}
+else
+add(t, {val, p}) 
+end
+end
 
 __gfx__
 0055006000000aa0007700040855000800000aa00078000000000000000000000000000000000000000000000000000000000000000000000000000000000000
