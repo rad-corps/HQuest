@@ -108,12 +108,12 @@ end_tile = {17,12}
 end
 
 function _init()
+cnt = 0
 app_state = main_menu_state
 animator = 5
 animator2 = false
 animator2_counter = 0
 gold = 0
-run_update = true
 draw_all_player_stats = false
 actors={}
 player_types = {
@@ -196,16 +196,6 @@ end
 function _draw()
 	cls()
 	
-	animator2_counter += 1
-	if (animator2_counter > 15) then
-		animator2_counter = 0
-		if animator2 == false then
-			animator2 = true
-		else
-			animator2 = false
-		end
-	end
-
 	animator += 1
 	if (animator > 7) animator = 5
 
@@ -310,7 +300,6 @@ game_state={
 			end
 
 			if actors[1].alive == false and actors[2].alive == false then
-				run_update = false
 				gui.msg("your team has been killed")
 				gui.msg("game over", function()
 					camera()
@@ -923,9 +912,11 @@ end
 function player:initial_update()
 	local en = self:get_adjacent_enemies()
 	if (#en > 0) self.menu_selection = 2
+	cnt=0
 end
 
 function player:update()
+	cnt += 1
 	if self.alive == false then
 		increment_actor()
 		do return end
@@ -987,28 +978,28 @@ function player:rollmovementdice()
 end
 
 function player:draw()	
+	local d = true
+
 	if self.index == 2 then
 		pal(5, 13, 0)
 		pal(13, 5, 0)
 	end
 
 	if actor_index == self.index then
-		
 		if self.state != "spell_menu" and self.state != "attack_menu" then
 			set_camera(self.x * 8 - 64, self.y * 8 - 64)
-			if animator2 == true then
-				rect(self.x * 8, self.y * 8, self.x * 8 + 7, self.y * 8 + 7, 11)
+			if animator == 7 and cnt < 20 then
+				d = false
 			end				
 		else
 			local en = self.adjacent_enemies[self.a_s]
 			set_camera(en.x * 8 - 64, en.y * 8 - 64)
 		end
-
 	end
 
 	if self.alive != true then
 		spr(self.sprite + 3,self.x * 8, self.y * 8)
-	else
+	elseif d == true then
 		spr(self.sprite,self.x * 8, self.y * 8)
 	end
 
@@ -1017,7 +1008,6 @@ function player:draw()
 	end
 
 	pal()
-
 end
 
 function player:move()
