@@ -4,7 +4,7 @@ __lua__
 
 function get_mission(num)
 	local l_mission = {}
-	if num == 1 then 
+	if num == 2 then 
 l_mission = {
 starting_point = {18,12},
 door_locations = 
@@ -72,7 +72,7 @@ chest_data =
 ,
 end_tile = {20,19}
 }
-elseif num == 2 then 
+elseif num == 1 then 
 l_mission = {
 starting_point = {2,4},
 door_locations = 
