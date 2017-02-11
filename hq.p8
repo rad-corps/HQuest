@@ -4,57 +4,75 @@ __lua__
 
 function get_mission(num)
 	local l_mission = {}
-	if num == 2 then 
+	if num == 1 then 
 l_mission = {
-starting_point = {2,4},
+starting_point = {18,12},
 door_locations = 
-[[3,1|
-8,1|
-11,3|
-11,6|
-9,11|
-4,11|
-3,13|
-7,13|
-9,13|
-13,12|]],
---x,y,type
+[[17,15|
+21,7|
+22,2|
+24,6|
+27,3|
+27,9|
+32,3|
+32,9|
+24,13|
+27,15|
+29,18|
+25,18|
+29,23|
+25,23|
+20,23|
+18,19|]],
 enemies =	
-[[7,4,4|
-7,7,4|
-7,9,4|
-2,7,4|
-2,12,4|
-6,14,4|
-7,15,4|
-10,14,4|]],
+[[14,11,4|
+21,11,4|
+19,4,4|
+20,3,4|
+29,5,4|
+31,5,4|
+23,9,4|
+25,10,4|
+30,10,4|
+23,16,4|
+25,16,4|
+33,16,4|
+29,20,4|
+30,21,4|
+27,24,4|
+16,21,4|
+17,21,4|]],
 rocks = 
-[[1,0|
-15,0|
-1,12|
-15,8|
-15,16|]]
+[[18,8|
+22,12|
+16,16|
+16,17|
+17,17|
+15,24|
+33,1|
+33,13|]]
 ,
---x,y,type,amount/strength
 chest_data = 
-[[5, 2, 2, -1|
-5, 3, 2, -1|
-14, 6, 1, 50|
-2, 10, 1, 100|
-2, 17, 1, 100|
-3, 17, 3, -1|
-4, 17, 1, 100|				
-6, 16, 2, -1|
-7, 16, 1, 150|
-10, 16, 3, -1|
-14, 10, 1, 50|
-15, 10, 1, 50|
-14, 14, 1, 50|
-15, 14, 1, 50|]]
+[[14, 14, 2, -1|
+15, 14, 3, -1|
+23, 10, 1, 100|
+30, 2, 1, 150|
+31, 2, 1, 150|
+33, 14, 1, 200|
+23, 14, 1, 150|
+30, 17, 1, 150|
+24, 22, 1, 150|
+16, 18, 1, 150|
+17, 18, 1, 150|
+19, 18, 1, 150|
+22, 18, 1, 150|
+22, 18, 1, 150|
+22, 22, 1, 150|
+19, 22, 1, 150|]]
 ,
-end_tile = {17,12}
+end_tile = {20,19}
 }
-elseif num == 1 then 
+elseif num == 2 then 
 l_mission = {
 starting_point = {2,4},
 door_locations = 
@@ -68,7 +86,6 @@ door_locations =
 7,13|
 9,13|
 13,12|]],
---x,y,type
 enemies =	
 [[7,4,1|
 7,7,1|
@@ -91,11 +108,11 @@ chest_data =
 14, 6, 1, 50|
 2, 10, 1, 100|
 2, 17, 1, 100|
-3, 17, 3, -1|
+3, 17, 1, 75|
 4, 17, 1, 100|				
-6, 16, 2, -1|
+6, 16, 1, 75|
 7, 16, 1, 150|
-10, 16, 3, -1|
+10, 16, 1, 150|
 14, 10, 1, 50|
 15, 10, 1, 50|
 14, 14, 1, 50|
@@ -294,8 +311,8 @@ game_state={
 			gui.update()
 		else						
 			if actors[actor_index].alive == true then
-				actors[actor_index]:update()
-			else
+				actors[actor_index]:update()				
+			else				
 				increment_actor()
 			end
 
@@ -342,6 +359,8 @@ game_state={
 		gui.draw()
 
 		draw_active_actor_stats()
+
+		gui.msg_p("")
 	end
 }
 
@@ -563,7 +582,7 @@ ss = {
 
 gui={
 	messages = {},
-	
+	p_msg = "",
 	msg = function (msg, callback)
 		local gui_msg = {msg, callback}
 
@@ -574,6 +593,10 @@ gui={
 		end
 
 		add(gui.messages, gui_msg)
+	end,
+
+	msg_p = function(msg)
+		gui.p_msg = msg
 	end,
 
 	active_messages = function()
@@ -598,7 +621,9 @@ rectfill(0,117,126,125, 13)
 
 local p = actors[actor_index]
 local y_pos = 119
-if #gui.messages > 0 then
+if #gui.p_msg > 0 then
+	print(gui.p_msg, 64 - #gui.p_msg*2 - 2, y_pos, 7)	
+elseif #gui.messages > 0 then
 	local msg = gui.messages[1][1] .. " \x97"
 	print(msg, 64 - #msg*2 - 2, y_pos, 7)		
 
@@ -749,7 +774,7 @@ end
 
 function init_rooms_array()
 	
-	for i=1,34 do
+	for i=1,35 do
 		add(rooms, room:new())
 	end
 
@@ -791,7 +816,7 @@ function init_rooms_array()
 	{11,7,3,11,true}
 	}
 
-	for i=1, 34 do
+	for i=1, 35 do
 		local rm = r[i]
 		rooms[i]:init(rm[1], rm[2], rm[3], rm[4], rm[5], rm[6])
 	end
@@ -1092,7 +1117,7 @@ end
 function player:check_simple_collision()
 	local collided = false
 
-	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or cat(self.x, self.y) != nil)	then
+	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or cat(self.x, self.y) != nil) then
 		collided = true
 	end
 
@@ -1377,6 +1402,7 @@ function enemy:init(en)
 end
 
 function increment_actor()
+gui.msg_p("working...")
 actor_index += 1
 
 if actor_index > #actors then
@@ -1415,7 +1441,7 @@ function enemy:update()
 
 	timer += 1
 	
-	if self.path == nil and self.ml > 0 then
+	if self.path == nil and self.ml > 0 then		
 		self.paths = {}
 		if actors[1].alive == true then
 			self:calcpath(1)
@@ -1435,6 +1461,8 @@ function enemy:update()
 
 		self.path = self.paths[self.player_index]
 
+		if (#self.path > 20) self.path=nil
+
 		self.pathindex = 1
 	end
 
@@ -1445,6 +1473,8 @@ function enemy:update()
 		if self.ml == 0 or self.path == nil then
 			self:finishmove()			
 		else
+			local p = actors[self.player_index]
+			set_camera(p.x*8-64, p.y*8-64)
 	
 			self.ml -= 1
 			
@@ -1567,6 +1597,7 @@ function do_actor_attack(a, d)
 			defence_hits += 1
 		end
 	end	
+	gui.msg(d.name .. " rolls " .. defence_hits .. " defens")
 
 	if attack_hits > defence_hits then
 		local damage = attack_hits - defence_hits
@@ -1854,7 +1885,7 @@ end
 function addneighbourtileif(neighbours, x, y)
 local obstructed = true
 if x >= 0 and x < map_w and y >= 0 and y < map_h then
-if mget(x, y) > wallid 	then				
+if mget(x, y) > wallid and mget(x, y) != 50	then				
 obstructed = false						
 for i=3, #actors do
 if i != actor_index then
