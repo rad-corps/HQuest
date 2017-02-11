@@ -106,3 +106,52 @@ text for trying to exit before objective is complete
 text for exiting after objective complete
 on entering a room
 on killing an enemy
+
+item_select_state = {
+	update = function ()
+		local p = actors[actor_index]
+		if (btnp(2)) p.item_selection -= 1
+		if (btnp(3)) p.item_selection += 1
+		if (p.item_selection < 1) p.item_selection = #p.items
+		if (p.item_selection > #p.items) p.item_selection = 1
+		if (btnp(4)) then
+			app_state = game_state
+		end
+		if (btnp(5)) then
+			local item = p.items[p.item_selection]
+			if item == 2 then
+				local old_bp = p.bp			
+				p.bp += 4
+				if(p.bp > p.max_bp) p.bp = p.max_bp
+				gui.msg("used potion of heal")
+				gui.msg(p.bp - old_bp .. " body restored" )
+			elseif item == 3 then
+				local old_mp = p.mp			
+				p.mp += 4
+				p.mp = min(p.mp, p.max_mp)
+				gui.msg("used magic restore")
+				gui.msg(p.mp - old_mp .. " magic restored" )
+			end
+			del(p.items, p.items[p.item_selection])
+			app_state = game_state
+		end
+	end,
+
+	draw = function()
+		local p = actors[actor_index]		
+		camera()
+		rectfill(0,0,128,128, 4)
+		print("items:", 10, 40, 7)
+		local y_offset = 50
+		
+		for num=1, #p.items do
+			if p.item_selection == num then 
+				print("*" .. i_to_s(p.items[num]) .. "*", 10, y_offset, 7)
+			else
+				print(i_to_s(p.items[num]), 10, y_offset, 7)
+			end
+			y_offset += 10
+		end	
+		restore_camera()	
+	end
+}

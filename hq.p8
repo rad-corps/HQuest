@@ -54,7 +54,7 @@ chest_data =
 ,
 end_tile = {17,12}
 }
-	elseif num == 1 then 
+elseif num == 1 then 
 l_mission = {
 starting_point = {2,4},
 door_locations = 
@@ -87,7 +87,7 @@ rocks =
 ,
 chest_data = 
 [[5, 2, 2, -1|
-5, 3, 2, -1|
+5, 3, 3, -1|
 14, 6, 1, 50|
 2, 10, 1, 100|
 2, 17, 1, 100|
@@ -561,56 +561,7 @@ ss = {
 	end
 }
 
-item_select_state = {
-	update = function ()
-		local p = actors[actor_index]
-		if (btnp(2)) p.item_selection -= 1
-		if (btnp(3)) p.item_selection += 1
-		if (p.item_selection < 1) p.item_selection = #p.items
-		if (p.item_selection > #p.items) p.item_selection = 1
-		if (btnp(4)) then
-			app_state = game_state
-		end
-		if (btnp(5)) then
-			local item = p.items[p.item_selection]
-			if item == 2 then
-				local old_bp = p.bp			
-				p.bp += 4
-				if(p.bp > p.max_bp) p.bp = p.max_bp
-				gui.msg("used potion of heal")
-				gui.msg(p.bp - old_bp .. " body restored" )
-			elseif item == 3 then
-				local old_mp = p.mp			
-				p.mp += 4
-				p.mp = min(p.mp, p.max_mp)
-				gui.msg("used magic restore")
-				gui.msg(p.mp - old_mp .. " magic restored" )
-			end
-			del(p.items, p.items[p.item_selection])
-			app_state = game_state
-		end
-	end,
-
-	draw = function()
-		local p = actors[actor_index]		
-		camera()
-		rectfill(0,0,128,128, 4)
-		print("items:", 10, 40, 7)
-		local y_offset = 50
-		
-		for num=1, #p.items do
-			if p.item_selection == num then 
-				print("*" .. i_to_s(p.items[num]) .. "*", 10, y_offset, 7)
-			else
-				print(i_to_s(p.items[num]), 10, y_offset, 7)
-			end
-			y_offset += 10
-		end	
-		restore_camera()	
-	end
-}
-
-gui = {
+gui={
 	messages = {},
 	
 	msg = function (msg, callback)
@@ -663,17 +614,18 @@ elseif actor_index < 3 then
 	elseif p.state == "attack_menu" then
 		print(" \x8bselect enemy\x91   attack\x97", 5, y_pos, 7)			
 		local en = p.adjacent_enemies[p.a_s]			
-
 	elseif p.state == "spell_menu" then		
 		local spell_name = spell_list[p.spell_selection][1]
-		print(" \x8bcast ".. spell_name .." on\x91   cast\x97", 5, 120, 7)			
-
+		print(" \x8bcast ".. spell_name .." on\x91   cast\x97", 5, y_pos, 7)			
 	elseif p.state == "give_menu" then			
-		print(" \x8b" .. i_to_s(p.items[p.item_selection]) .."\x91", 5, 120, 7)			
-		print("\x97give", 97, 120, 7)	
+		print(" \x8b" .. i_to_s(p.items[p.item_selection]) .."\x91", 5, y_pos, 7)			
+		print("\x97give", 97, y_pos, 7)	
 		local mt = p:get_mate()
 		restore_camera()
 		rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
+	elseif p.state == "item_select_state" then
+		print(" \x8b" .. i_to_s(p.items[p.item_selection]) .."\x91", 5, y_pos, 7)	
+		print("\x97drink", 95, y_pos, 7)
 	end
 
 	if p.state == "attack_menu" or p.state == "spell_menu" then	
@@ -952,6 +904,36 @@ function player:update()
 		self:do_spell_select()		
 	elseif self.state == "spell_menu" then
 		self:do_spell_menu()		
+	elseif self.state == "item_select_state" then
+		self:do_item_select()
+	end	
+end
+
+function player:do_item_select()
+	
+	local p = self
+	if (btnp(0)) p.item_selection -= 1
+	if (btnp(1)) p.item_selection += 1
+	if (p.item_selection < 1) p.item_selection = #p.items
+	if (p.item_selection > #p.items) p.item_selection = 1
+	if (btnp(4)) p.state = "move_or_action"
+	if (btnp(5)) then
+		local item = p.items[p.item_selection]
+		if item == 2 then
+			local old_bp = p.bp			
+			p.bp += 4
+			if(p.bp > p.max_bp) p.bp = p.max_bp
+			gui.msg("used potion of heal")
+			gui.msg(p.bp - old_bp .. " body restored" )
+		elseif item == 3 then
+			local old_mp = p.mp			
+			p.mp += 4
+			p.mp = min(p.mp, p.max_mp)
+			gui.msg("used magic restore")
+			gui.msg(p.mp - old_mp .. " magic restored" )
+		end
+		del(p.items, p.items[p.item_selection])
+		p.state = "move_or_action"
 	end	
 end
 
@@ -1206,7 +1188,7 @@ function player:do_move_or_action_menu()
 				gui.msg("action already performed")
 			end
 		elseif self.menu_selection == 4 then
-			app_state = item_select_state	
+			self.state = "item_select_state"
 		elseif self.menu_selection == 5 then
 			draw_all_player_stats = true
 			gui.msg("continue", function()
