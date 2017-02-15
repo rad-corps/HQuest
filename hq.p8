@@ -332,6 +332,7 @@ mms={
 		if mms.a == 3 then mms.a = 0 end
 
 		if btnp(5) then 
+			sfx(40)
 			css.init()
 			app_state = css
 		end	
@@ -368,14 +369,21 @@ css={
 	update = function()
 		local p_num = css.player_num
 
-		if (btnp(0)) css.selection[p_num] = max(1, css.selection[p_num] - 1)
-		if (btnp(1)) css.selection[p_num] = min(3, css.selection[p_num] + 1)
+		if (btnp(0)) then 
+			sfx(39) 
+			css.selection[p_num] = max(1, css.selection[p_num] - 1)
+		end
+		if (btnp(1)) then
+			sfx(39)
+			css.selection[p_num] = min(3, css.selection[p_num] + 1)
+		end
 		if (btnp(4)) then
 			if p_num == 2 then
 				css.player_num -= 1
 			end
 		end
 		if (btnp(5)) then
+			sfx(40)
 			local p = player:new()
 			p:init(player_types[css.selection[p_num]][1], p_num)
 			actors[p_num] = p
@@ -540,12 +548,9 @@ function draw_active_actor_stats()
 			end
 			print(a_str, 64 - #a_str*2,y_pos,colour)	
 			y_pos += 8	
-		end
-		
+		end	
 		restore_camera()
-
 	end
-
 end
 
 ss = {
@@ -567,19 +572,28 @@ ss = {
 	update = function()
 		
 		if (btnp(3)) then
+			sfx(39)
 			ss.y_selection += 1
 			if (ss.y_selection == 3) ss.y_selection = 5
 			ss.y_selection = min(ss.y_selection, 7)
 		end
 		if (btnp(2)) then
+			sfx(39)
 			ss.y_selection -= 1
 			if (ss.y_selection == 4) ss.y_selection = 2
 			ss.y_selection = max(1, ss.y_selection)
 		end
 
 		local x_val = 0
-		if (btnp(0)) x_val -= 1
-		if (btnp(1)) x_val += 1
+		if (btnp(0)) then
+			sfx(39)
+		 	x_val -= 1
+		end
+		if (btnp(1)) then
+			sfx(39)
+			x_val += 1
+		end
+
 
 		local y_sel = ss.y_selection
 
@@ -1097,7 +1111,7 @@ function player:do_give_menu()
 
 		add(mate.items, self.items[self.item_selection])
 		gui.msg("given " .. i_to_s(self.items[self.item_selection]))
-		del(self.items, self.item_selection)
+		del(self.items, self.items[self.item_selection])
 
 		self.state = "move_or_action"
 	end
@@ -1306,8 +1320,14 @@ end
 function player:do_move_or_action_menu()
 
 	local x_sel = 0
-	if (btnp(0)) x_sel -= 1
-	if (btnp(1)) x_sel += 1
+	if (btnp(0)) then 
+		sfx(39)
+		x_sel -= 1
+	end
+	if (btnp(1)) then
+		sfx(39)
+		x_sel += 1
+	end
 
 	self.menu_selection += x_sel
 
@@ -1317,7 +1337,7 @@ function player:do_move_or_action_menu()
 	self:next_menu_selection(x_sel)
 
 	if (btnp(5)) then
-		
+		sfx(40)
 		if self.menu_selection == 1 then
 			self.state = "move"
 		elseif self.menu_selection == 2 then
@@ -2392,8 +2412,8 @@ __sfx__
 011000002853726537245372253728537265372453722537245312253124531225352253522535000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010700000d5450c5550c5450d5551054513555165451a5551e5451f55500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0109000022333163331733323303233032330323303233032230321303203031c3031a30300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010500003054031540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010800003054037540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
