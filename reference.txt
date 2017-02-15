@@ -1,5 +1,6 @@
 cut down functions
 --------------------------------
+main_menu_state							->mms
 chest_at_tile							->cat
 closed_chest_at_tile					->ccat
 closed_chest_at_surrounding_location	->ccasl
@@ -108,4 +109,14 @@ on entering a room
 on killing an enemy
 
 
-check for rocks in addneighbourtileif
+check for rocks in addneighbourtileif tile 50
+
+SFX
+-----------------------------
+32 - miss
+33 - dodge
+34 - step
+35 - potion drink
+36 - spell cast
+37 - chest open
+38 - hit
