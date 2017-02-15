@@ -120,3 +120,5 @@ SFX
 36 - spell cast
 37 - chest open
 38 - hit
+39 - option change
+40 - option confirm
