@@ -979,6 +979,7 @@ function player:init(type, index)
 
 	self.name = type
 	self.human = true
+	self.flip = false
 
 	local weapons = equipment_table[1]
 	local armour = equipment_table[2]
@@ -1147,10 +1148,14 @@ function player:draw()
 		end
 	end
 
+	local sprite = self.sprite
+
 	if self.alive != true then
-		spr(self.sprite + 3,self.x * 8, self.y * 8)
-	elseif d == true then
-		spr(self.sprite,self.x * 8, self.y * 8)
+		sprite += 3
+	end
+
+	if d == true then
+		spr(sprite,self.x*8,self.y*8,1,1,self.flip)
 	end
 
 	if actor_index == self.index then
@@ -1173,11 +1178,19 @@ function player:move()
 	local prevx = self.x
 	local prevy = self.y
 	local heading = {x=0, y=0}
+
 	if self.ml > 0 then 
-		if (btnp(0)) heading.x -= 1
-		if (btnp(1)) heading.x += 1
-		if (btnp(2)) heading.y -= 1
-		if (btnp(3)) heading.y += 1	
+		if (btnp(0)) then 
+			heading.x -= 1
+			self.flip = true				
+		elseif (btnp(1)) then
+			heading.x += 1
+			self.flip = false
+		elseif (btnp(2)) then
+			heading.y -= 1			
+		elseif (btnp(3)) then 
+			heading.y += 1	
+		end
 	end
 
 	self.x += heading.x
@@ -1542,6 +1555,7 @@ function enemy:init(en)
 	self.type = en[3]
 	self.active = false
 	self.alive = true	
+	self.flip = false
 
 	local ed = enemy_type[self.type]
 
@@ -1655,7 +1669,12 @@ function enemy:update()
 				self.x = self.path[self.pathindex][1]
 				self.y = self.path[self.pathindex][2]
 
-				--todo check all
+				if prevx > self.x then
+					self.flip = false
+				elseif prevx < self.x then
+					self.flip = true
+				end
+
 				for i=1, #actors do
 					if i != actor_index then
 						if self.x == actors[i].x and self.y == actors[i].y and actors[i].alive then
@@ -1682,7 +1701,7 @@ function enemy:draw()
 		if self.alive == false then 
 			sprite += 8
 		end
-		spr(sprite, self.x * 8, self.y * 8)
+		spr(sprite,self.x*8,self.y*8,1,1,self.flip)
 	end
 end
 
