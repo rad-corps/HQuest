@@ -484,6 +484,10 @@ game_state={
 			ac:draw()
 		end
 
+		for i=1,2 do
+			actors[i]:draw()
+		end
+
 		for ch in all(chests) do
 			ch:draw()
 		end
@@ -1454,7 +1458,7 @@ function player:cast_spell(spell, spell_receiver)
 
 				gui.msg(spell_receiver.name .. " was killed", function()
 						spell_receiver.alive = false
-						spell_receiver.active = false
+						--spell_receiver.active = false
 					end)
 			end
 		elseif spell[1] == "sleep" then
@@ -1674,7 +1678,11 @@ end
 
 function enemy:draw()	
 	if self.active == true then 
-		spr(self.sprite, self.x * 8, self.y * 8)
+		local sprite = self.sprite
+		if self.alive == false then 
+			sprite += 8
+		end
+		spr(sprite, self.x * 8, self.y * 8)
 	end
 end
 
@@ -1773,7 +1781,7 @@ function do_actor_attack(a, d)
 
 			gui.msg(d.name .. " has been killed", function()
 				d.alive = false
-				d.active = false
+				--d.active = false
 				end)
 		end
 	else
