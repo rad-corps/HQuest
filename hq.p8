@@ -223,7 +223,7 @@ end
 
 function _init()
 cnt = 0
-music()
+--music()
 app_state = mms
 animator = 5
 animator2 = false
