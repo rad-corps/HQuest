@@ -101,7 +101,7 @@ chest_data =
 end_tile = {15,11}
 }
 
-elseif num == 2 then 
+elseif num == 1 then 
 l_mission = {
 starting_point = {18,12},
 door_locations = 
@@ -169,7 +169,7 @@ chest_data =
 ,
 end_tile = {20,19}
 }
-elseif num == 1 then 
+elseif num == 2 then 
 l_mission = {
 starting_point = {2,4},
 door_locations = 
@@ -1689,7 +1689,7 @@ function enemy:update()
 
 		self.path = self.paths[self.player_index]
 
-		if (#self.path > 20) self.path=nil
+		if (self.path != nil and #self.path > 20) self.path=nil
 
 		self.pathindex = 1
 	end
@@ -1754,11 +1754,23 @@ end
 
 function enemy:draw()	
 	if self.active == true then 
-		local sprite = self.sprite
-		if self.alive == false then 
-			sprite += 8
+
+		local rooms = rooms_actor_is_in(self)
+		local d = false
+		for rm in all(rooms) do
+			if rm.visible == true then
+				d = true
+			end
 		end
-		spr(sprite,self.x*8,self.y*8,1,1,self.flip)
+
+		if d == true then
+
+			local sprite = self.sprite
+			if self.alive == false then 
+				sprite += 8
+			end
+			spr(sprite,self.x*8,self.y*8,1,1,self.flip)
+		end
 	end
 end
 
@@ -2137,7 +2149,7 @@ end
 function addneighbourtileif(neighbours, x, y)
 local obstructed = true
 if x >= 0 and x < map_w and y >= 0 and y < map_h then
-if mget(x, y) > wallid and mget(x, y) != 50	then				
+if mget(x, y) > wallid and mget(x, y) != 50 and mget(x,y) != 48 then				
 obstructed = false						
 for i=3, #actors do
 if i != actor_index then
