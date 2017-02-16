@@ -184,7 +184,8 @@ door_locations =
 9,13|
 13,12|]],
 enemies =	
-[[7,4,1|
+[[7,2,1|
+9,2,1|
 7,7,1|
 7,9,2|
 2,7,2|
@@ -1227,8 +1228,13 @@ function player:move()
 	if (btnp(5)) then 
 		local ch_opened = false
 		do
-			local ch = ccasl(self.x, self.y)
+			local ch, x = ccasl(self.x, self.y)
 			if ( ch != nil and ch.opened == false) then 				
+				if x == 1 then
+					self.flip = false
+				elseif x ==-1 then
+					self.flip = true
+				end
 				if ch.chest_type == 1 then
 					sfx(37)	
 					gui.msg("you found " .. ch.amount .. " gold")						
@@ -1258,6 +1264,14 @@ function player:move()
 		end
 		if self.state != "attack_menu" and ch_opened == false and self:is_player_adjacent() == true then
 			if #self.items >= 1 then
+				local mate = self:get_mate()
+				if mate.x > self.x then 
+					self.flip = false
+					mate.flip = true
+				elseif mate.x < self.x then
+					self.flip = true
+					mate.flip = false
+				end
 				self.state = "give_menu"
 				self.item_selection = 1
 			end
@@ -1452,6 +1466,13 @@ function player:update_a_s()
 		self.adjacent_enemies = nil
 		self.a_s = nil
 		self.state = "move_or_action"
+	end
+
+	local en = self.adjacent_enemies[self.a_s]
+	if en.x < self.x then
+		self.flip = true
+	elseif en.x > self.x then
+		self.flip = false
 	end
 end
 
@@ -1753,11 +1774,18 @@ end
 
 function ccasl(x,y)
 	local ret = nil
-	if (ret == nil) ret = ccat(x+1, y)
-	if (ret == nil) ret = ccat(x-1, y)
+	local retx = 0
+	if (ret == nil) then
+		ret = ccat(x+1, y)
+		retx += 1
+	end
+	if (ret == nil) then 
+		ret = ccat(x-1, y)
+		retx -= 1
+	end
 	if (ret == nil) ret = ccat(x, y+1)
 	if (ret == nil) ret = ccat(x, y-1)
-	return ret
+	return ret,retx
 end
 
 function ccat(x,y)
