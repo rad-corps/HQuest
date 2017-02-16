@@ -2015,7 +2015,7 @@ function get_actor_on_tile(x,y)
 local ret = nil
 
 for i=1,#actors do
-if actors[i].x == x and actors[i].y == y then
+if actors[i].x == x and actors[i].y == y and actors[i].alive == true then
 ret = actors[i]
 end
 end
