@@ -8,6 +8,7 @@ player.attack_selection					->player.a_s
 update_a_s								->update_attack_selection
 item_num_to_string						->i_to_s
 shop_state								->ss
+character_selection_state				->css
 
 Enemies
 -----------------------------------------
@@ -123,3 +124,5 @@ SFX
 39 - option change
 40 - option confirm
 41 - open door
+42 - error
+43 - buy
