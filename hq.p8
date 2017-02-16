@@ -222,6 +222,8 @@ end_tile = {17,12}
 end
 
 function _init()
+camera()
+num_missions=3
 cnt = 0
 --music()
 app_state = mms
@@ -451,7 +453,6 @@ game_state={
 			if actors[1].alive == false and actors[2].alive == false then
 				gui.msg("your team has been killed")
 				gui.msg("game over", function()
-					camera()
 					_init()
 				end)				
 			else
@@ -465,10 +466,22 @@ game_state={
 					at_end = false
 				end
 				if at_end then
-					gui.msg("advance to next level", function()
-						ss.init()
-						app_state = ss
-						end)
+					
+					if num_missions == mission_num then
+						gui.msg("congraturation")
+						gui.msg("story is happy end")
+						gui.msg("picoquest by")
+						gui.msg("adam hulbert")
+						gui.msg("adamhportfolio.com")
+						gui.msg("tweet - @hulbertadam", function()
+							_init()
+							end)
+					else
+						gui.msg("advance to next level", function()
+							ss.init()
+							app_state = ss
+							end)
+					end
 				end
 			end
 
