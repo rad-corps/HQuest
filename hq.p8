@@ -557,8 +557,7 @@ function draw_active_actor_stats()
 	end
 end
 
-ss = {
-
+ss={
 	init = function()
 		ss.categories = { 
 			"weapons",
@@ -633,16 +632,26 @@ ss = {
 					gold -= b_item[3]
 					local p = actors[ss.player_num]
 					if ss.browsing_selection == 1 then
+						sfx(43)
 						p.wpn = b_item
 					elseif ss.browsing_selection == 2 then
+						sfx(43)
 						p.armour = b_item
 					elseif ss.browsing_selection == 3 then
-						add(p.items, b_item[2])
+						if #p.items >= 3 then
+							sfx(42)
+							gold += b_item[3]
+						else
+							sfx(43)
+							add(p.items, b_item[2])
+						end
 					end
 				else
+					sfx(42)
 					printh("can not afford " .. b_item[1])
 				end
 			elseif ss.y_selection == 7 then
+				sfx(40)
 				mission_num += 1
 				game_state.init()
 				app_state = game_state
@@ -1107,17 +1116,23 @@ function player:do_item_select()
 end
 
 function player:do_give_menu()
-	if (btnp(0)) then		
+	if (btnp(0)) then	
+		sfx(39)	
 		self.item_selection = max(self.item_selection - 1, 1)
 	elseif (btnp(1)) then
+		sfx(39)
 		self.item_selection = min(self.item_selection + 1, #self.items)
 	elseif (btnp(5)) then
-		sfx(40)
 		local mate = self:get_mate()
-
-		add(mate.items, self.items[self.item_selection])
-		gui.msg("given " .. i_to_s(self.items[self.item_selection]))
-		del(self.items, self.items[self.item_selection])
+		if #mate.items < 3 then
+			sfx(40)
+			add(mate.items, self.items[self.item_selection])
+			gui.msg("given " .. i_to_s(self.items[self.item_selection]))
+			del(self.items, self.items[self.item_selection])
+		else
+			sfx(42)
+			gui.msg(mate.name .. " cannot carry more")
+		end
 
 		self.state = "move_or_action"
 	end
@@ -1200,15 +1215,22 @@ function player:move()
 		local ch_opened = false
 		do
 			local ch = ccasl(self.x, self.y)
-			if ( ch != nil and ch.opened == false) then 
-				sfx(37)		
+			if ( ch != nil and ch.opened == false) then 				
 				if ch.chest_type == 1 then
-					gui.msg("you found " .. ch.amount .. " gold")
-
+					sfx(37)	
+					gui.msg("you found " .. ch.amount .. " gold")						
 					gold += ch.amount
 				elseif ch.chest_type >= 2 then
 					gui.msg("you found " .. i_to_s(ch.chest_type))
-					add(self.items, ch.chest_type)
+					if #self.items >= 3 then
+						sfx(42)
+						gui.msg("too many items", function()
+							ch.opened = false
+							end)
+					else
+						sfx(37)		
+						add(self.items, ch.chest_type)
+					end
 				end
 				ch.opened = true
 				ch_opened = true
@@ -1380,6 +1402,7 @@ function player:do_move_or_action_menu()
 		elseif self.menu_selection == 4 then
 			if #self.items < 1 then
 				gui.msg("you have no items")
+				sfx(42)
 			else
 				self.state = "item_select_state"
 			end
@@ -2448,8 +2471,8 @@ __sfx__
 010500003054031540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010800003054037540000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 010400000044000441014410244103441044410544100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010700001a235002001a2301a2311a235000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+011000002454728547295472b54730542305420000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
