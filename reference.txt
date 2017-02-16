@@ -122,3 +122,4 @@ SFX
 38 - hit
 39 - option change
 40 - option confirm
+41 - open door
