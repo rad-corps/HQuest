@@ -495,12 +495,16 @@ game_state={
 		end	
 		
 		for ac in all(actors) do
-			ac:draw()
+			ac:draw(false)
 		end
 
-		for i=1,2 do
-			actors[i]:draw()
+		for ac in all(actors) do
+			ac:draw(true)
 		end
+
+		--for i=1,2 do
+		--	actors[i]:draw()
+		--end
 
 		for ch in all(chests) do
 			ch:draw()
@@ -1157,7 +1161,11 @@ function player:rollmovementdice()
 	return flr(rnd(6)) + flr(rnd(6)) + 2
 end
 
-function player:draw()	
+function player:draw(alive)	
+	if self.alive != alive then
+		do return end
+	end
+
 	local d = true
 
 	if self.index == 2 then
@@ -1179,7 +1187,7 @@ function player:draw()
 
 	local sprite = self.sprite
 
-	if self.alive != true then
+	if alive != true then
 		sprite += 3
 	end
 
@@ -1752,9 +1760,12 @@ function enemy:update()
 	end
 end
 
-function enemy:draw()	
-	if self.active == true then 
+function enemy:draw(alive)	
+	if self.alive != alive then
+		do return end
+	end
 
+	if self.active == true then 
 		local rooms = rooms_actor_is_in(self)
 		local d = false
 		for rm in all(rooms) do
@@ -1766,7 +1777,7 @@ function enemy:draw()
 		if d == true then
 
 			local sprite = self.sprite
-			if self.alive == false then 
+			if alive == false then 
 				sprite += 8
 			end
 			spr(sprite,self.x*8,self.y*8,1,1,self.flip)
