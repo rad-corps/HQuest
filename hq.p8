@@ -252,13 +252,13 @@ equipment_table = {
 {"short sword",2,0, "2 attack"},
 {"axe", 3, 300, "3 attack"},
 {"power axe", 5, 1000, "5 attack"},
-{"magic axe", 6, 3000, "6 attack x2 magic str"}
+{"magic axe", 6, 3000, "6 atk x2 magic"}
 },
 {
 {"staff", 1, 0, "1 attack"},
-{"mighty staff", 2, 300, "2 attack"},
-{"magic staff", 2, 1000, "2 attack x2 magic str"},
-{"wizard weapon", 3, 3000, "3 attack x4 magic str"},
+{"mighty staff", 2, 300, "2 atk"},
+{"magic staff", 2, 1000, "2 atk x2 magic"},
+{"wizard weapon", 3, 3000, "3 atk x4 magic"},
 }
 },
 {
