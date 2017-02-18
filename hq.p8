@@ -4,7 +4,7 @@ __lua__
 
 function get_mission(num)
 	local l_mission = {}
-	if num == 3 then 
+	if num == 4 then 
 l_mission = {
 starting_point = {20,19},
 door_locations = 
@@ -101,7 +101,7 @@ chest_data =
 end_tile = {15,11}
 }
 
-elseif num == 1 then 
+elseif num == 3 then 
 l_mission = {
 starting_point = {18,12},
 door_locations = 
@@ -169,6 +169,7 @@ chest_data =
 ,
 end_tile = {20,19}
 }
+
 elseif num == 2 then 
 l_mission = {
 starting_point = {2,4},
@@ -218,13 +219,109 @@ chest_data =
 ,
 end_tile = {17,12}
 }
+
+elseif num == 1 then 
+l_mission = {
+starting_point = {2,10},
+door_locations = 
+[[6,8|
+9,5|
+11,6|
+11,3|
+15,3|
+3,1|
+18,4|
+20,1|]],
+enemies =	
+[[9,7,1|
+13,3,1|
+17,3,1|
+17,5,1|
+8,2,1|
+10,2,1|
+4,0,2|]],
+rocks = 
+[[1,0|
+22,0|]],
+chest_data = 
+[[5, 2, 1, 200|
+9, 10, 1, 100|
+10, 10, 1, 100|
+16, 7, 1, 100|
+17, 7, 1, 100|
+16, 1, 1, 100|
+17, 1, 1, 100|
+5,9,2,-1|]],
+end_tile = {2,3}
+}
+
+elseif num == 5 then 
+l_mission = {
+starting_point = {20,19},
+door_locations = 
+[[18,20|
+15,19|
+15,21|
+11,20|
+5,20|
+5,22|
+3,18|
+7,17|
+9,17|
+8,15|
+5,15|
+1,15|
+13,7|
+11,3|
+9,5|
+7,5|
+6,7|
+3,5|
+4,1|
+20,1|
+22,3|
+23,6|
+25,6|
+29,6|
+32,3|
+27,9|
+32,15|
+27,15|
+25,13|
+20,12|]],
+enemies =	
+[[13,19,1|]],
+rocks = 
+[[1,0|]]
+,
+chest_data = 
+[[5, 2, 2, -1|]]
+,
+end_tile = {17,12}
+}
+
+elseif num == 6 then 
+l_mission = {
+starting_point = {2,4},
+door_locations = 
+[[3,1|]],
+enemies =	
+[[7,2,1|]],
+rocks = 
+[[1,0|]]
+,
+chest_data = 
+[[5, 2, 2, -1|]]
+,
+end_tile = {17,12}
+}
 	end
 	return l_mission
 end
 
 function _init()
 camera()
-num_missions=3
+num_missions=6
 cnt = 0
 --music()
 app_state = mms
@@ -274,14 +371,14 @@ equipment_table = {
 }
 	
 enemy_type = {
-{"goblin",7,2,1,1,1, 16},
+{"goblin",4,1,1,1,1,16},
 {"skeleton",6,2,2,1,0, 17},
-{"zombie",5,2,3,1,0,18},
-{"orc",8,2,2,2,2,19},
+{"zombie",3,2,1,3,0,18},
+{"orc",8,2,3,2,2,19},
 {"fimir",6,3,3,2,3,20},
-{"mummy",4,3,4,2,0,21},
-{"chaos warrior",7,4,4,3,3,22},
-{"gargoyle",6,4,5,3,4,23},
+{"mummy",4,4,2,3,0,21},
+{"chaos warrior",8,4,4,4,3,22},
+{"gargoyle",0,7,7,10,4,23},
 }
  	
 spell_list = {
