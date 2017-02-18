@@ -393,8 +393,8 @@ gold = 0
 draw_all_player_stats = false
 actors={}
 player_types = {
-{"barbarian", "strong in combat", "no magic ability"},
-{"dwarf", "a good fighter", "some magic ability"},
+{"barbarian", "dominates in combat", "weak magic"},
+{"dwarf", "good fighter", "decent magic ability"},
 {"wizard", "weak defense and combat", "strong magic"}
 }
 
@@ -627,8 +627,8 @@ game_state={
 				if at_end then
 					
 					if num_missions == mission_num then
-						gui.msg("congraturation")
-						gui.msg("story is happy end")
+						gui.msg("conglaturation")
+						gui.msg("this story is happy end")
 						gui.msg("picoquest by")
 						gui.msg("adam hulbert")
 						gui.msg("adamhportfolio.com")
@@ -636,6 +636,18 @@ game_state={
 							_init()
 							end)
 					else
+						for i=1,2 do
+							local p = actors[i]
+							if p.alive == true then
+								gui.msg(p.name .. "'s max bp increased")
+								gui.msg(p.name .. "'s max mp increased")
+								p.max_bp += 2
+								p.max_mp += 2
+							else
+								gui.msg(p.name .. " was resurrected")
+							end
+
+						end
 						gui.msg("advance to next level", function()
 							ss.init()
 							app_state = ss
