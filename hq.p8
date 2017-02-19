@@ -842,6 +842,7 @@ ss={
 				mission_num += 1
 				game_state.init()
 				app_state = game_state
+				cnt=0
 			end
 		end
 	end,
@@ -1353,7 +1354,7 @@ function player:draw(alive)
 			set_camera(self.x * 8 - 64, self.y * 8 - 64)
 			if animator == 7 and cnt < 20 then
 				d = false
-			end				
+			end
 		else
 			local en = self.adjacent_enemies[self.a_s]
 			set_camera(en.x * 8 - 64, en.y * 8 - 64)
