@@ -835,7 +835,6 @@ ss={
 					end
 				else
 					sfx(42)
-					printh("can not afford " .. b_item[1])
 				end
 			elseif ss.y_selection == 7 then
 				sfx(40)
@@ -1534,7 +1533,8 @@ function player:do_spell_select()
 	if (btnp(1)) self.spell_selection = min(#spell_list, self.spell_selection + 1)
 	if (btnp(5)) then
 		--todo on spell select
-		self.adjacent_enemies = self:get_actors_in_room()
+		local param={true, false, false, true}
+		self.adjacent_enemies = self:get_actors_in_room(param[self.spell_selection])
 		self.state = "spell_menu"
 		self.a_s = 1
 	end
@@ -1746,23 +1746,50 @@ function player:get_adjacent_enemies()
 
 	return ret
 end
-
-function player:get_actors_in_room()
-local ret = {}
-
-local rooms = rooms_actor_is_in(self)
-
-for rm in all(rooms) do
-for i=1, #actors do
-if cell_in_room(rm, actors[i].x, actors[i].y) then
-if actors[i].alive == true then
-add(ret, actors[i])
+ 
+function add_actor_if_in_room_and_unique(rm, actor, ret)
+	printh("add_actor_if_in_room_and_unique " .. rm.x .. " " .. actor.name .. " " .. #ret)
+	if cell_in_room(rm, actor.x, actor.y) then
+		if actor.alive == true then
+			local to_add = true
+			for tmp_act in all(ret) do
+				if actor == tmp_act then
+					to_add = false
+				end
+			end	
+			if to_add == true then
+				add(ret, actor)
+			end
+		end
+	end
 end
-end
-end	
-end
 
-return ret
+function player:get_actors_in_room(humansfirst)
+	local ret = {}
+	printh(#ret)
+
+	local rooms = rooms_actor_is_in(self)
+
+	if humansfirst == true then
+		for actor in all(actors) do
+			for rm in all(rooms) do			
+				add_actor_if_in_room_and_unique(rm, actor, ret)
+			end
+		end
+	else
+		for i=3, #actors do
+			for rm in all(rooms) do			
+				add_actor_if_in_room_and_unique(rm, actors[i], ret)
+			end
+		end
+		for i=1, 2 do
+			for rm in all(rooms) do			
+				add_actor_if_in_room_and_unique(rm, actors[i], ret)
+			end			
+		end
+	end
+
+	return ret
 end
 
 function player:is_player_adjacent()
