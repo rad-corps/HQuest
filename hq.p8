@@ -419,10 +419,11 @@ equipment_table = {
 }
 },
 {
-{"tunic", 1, 300, "1 defence die"},
-{"iron armour", 2, 600, "2 defence dice"},
-{"graphite suit", 4, 1200, "4 defence dice"},
-{"golden armour", 6, 2400, "6 defence dice"}
+{"tunic", 1, 0, "1 defence die"},
+{"iron armour", 2, 300, "2 defence dice"},
+{"graphite suit", 3, 1000, "4 defence dice"},
+{"golden armour", 4, 2000, "4 defence dice"},
+{"diamond armour", 6, 4000, "6 defence dice"}
 },
 {
 {"heal potion",1,150, "heals 4 body points"},
@@ -851,14 +852,9 @@ ss={
 		local rect_colour = 5
 		if (p_num == 2) rect_colour = 13
 		rectfill(0,0,128,128,rect_colour)
-		
 		rectfill(5,4, 128-5, 53, 1)		
-
-		rectfill(5,54, 128-5, 103, 2)		
-
-		rect_colour = 13
-		if (p_num == 2) rect_colour = 12
-		rectfill(5,104, 128-5, 122, rect_colour)	
+		rectfill(5,54, 128-5, 103, 2)				
+		rectfill(5,104, 128-5, 122, 3)	
 
 		local p = actors[p_num]
 		local b_sel = ss.browsing_selection
