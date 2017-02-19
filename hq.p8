@@ -1258,11 +1258,8 @@ function player:update()
 	end
 
 	if (btnp(4)) then
-		if self.state == "move_or_action" then 
-			self.state = "move"
-		elseif self.state != "move_or_action" then 
-			self.state = "move_or_action"
-		end
+		self.state = "move_or_action"
+		self.menu_selection = 6
 	end
 
 	if self.state == "move" then
