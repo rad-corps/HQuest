@@ -382,6 +382,12 @@ end
 function _init()
 camera()
 num_missions=6
+floor_colours ={
+	1,1,2,2,4,0
+}
+wall_colours={
+	5,9,12,14,8,8
+}
 cnt = 0
 --music()
 app_state = mms
@@ -671,10 +677,6 @@ game_state={
 		for ac in all(actors) do
 			ac:draw(true)
 		end
-
-		--for i=1,2 do
-		--	actors[i]:draw()
-		--end
 
 		for ch in all(chests) do
 			ch:draw()
@@ -989,6 +991,8 @@ elseif actor_index < 3 then
 		print(" \x8b" .. i_to_s(p.items[p.item_selection]) .."\x91", 5, y_pos, 7)			
 		print("\x97give", 97, y_pos, 7)	
 		local mt = p:get_mate()
+		p.adjacent_enemies = {mt}
+		p.a_s = 1
 		restore_camera()
 		rect(mt.x * 8, mt.y * 8, mt.x * 8 + 7, mt.y * 8 + 7, animator)
 	elseif p.state == "item_select_state" then
@@ -996,7 +1000,7 @@ elseif actor_index < 3 then
 		print("\x97drink", 95, y_pos, 7)
 	end
 
-	if p.state == "attack_menu" or p.state == "spell_menu" then	
+	if p.state == "attack_menu" or p.state == "spell_menu" or p.state == "give_menu" then	
 
 		local en = p.adjacent_enemies[p.a_s]			
 		local en_y = en.y * 8
@@ -1109,10 +1113,13 @@ function room:init(x, y, w, h,hall,vis)
 	end
 end
 
-function room:draw()
+function room:draw()	
+	pal(1, floor_colours[mission_num], 0)
+	pal(5, wall_colours[mission_num], 0)
 	if (self.visible) then
 		map(self.x, self.y, self.x*8, self.y*8, self.w, self.h)
 	end
+	pal()
 end
 
 function init_rooms_array()
