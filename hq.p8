@@ -195,7 +195,7 @@ enemies =
 6,14,3|
 7,15,2|
 10,14,3|
-12,11,4]],
+12,11,4|]],
 rocks = 
 [[1,0|
 15,0|
@@ -366,8 +366,7 @@ enemies =
 19,11,2|
 18,12,3|
 18,13,4|
-19,13,5|
-]],
+19,13,5|]],
 rocks = 
 [[16,1|
 17,1|
@@ -439,7 +438,7 @@ enemy_type = {
 {"fimir",6,3,3,2,3,20},
 {"mummy",4,4,2,3,0,21},
 {"chaos warrior",8,4,4,4,3,22},
-{"gargoyle",0,7,7,10,4,23},
+{"gargoyle",1,7,7,10,4,23},
 }
  	
 spell_list = {
@@ -921,6 +920,7 @@ ss={
 
 gui={
 	messages = {},
+	menu_sel = 1,
 	p_msg = "",
 	msg = function (msg, callback)
 		local gui_msg = {msg, callback}
@@ -955,10 +955,18 @@ end
 
 	draw = function()
 camera()
-rectfill(2,118,127,126, 6)
-rectfill(0,117,126,125, 13)
-
 local p = actors[actor_index]
+
+if #gui.messages == 0 then
+	gui.menu_sel = p.menu_selection
+end
+
+local sel = {4,8,2,13,3,1,5}
+
+rectfill(2,118,127,126, 7)
+rectfill(0,117,126,125, sel[gui.menu_sel])
+
+
 local y_pos = 119
 if #gui.p_msg > 0 then
 	print(gui.p_msg, 64 - #gui.p_msg*2 - 2, y_pos, 7)	
@@ -1486,11 +1494,6 @@ function player:move()
 			self.ml -= 1
 		end
 	end
-		
-	if self.x < 0 or self.x >= map_w or self. y < 0 or self.y >= map_h then
-		self.x = prevx
-		self.y = prevy
-	end
 
 	if self.x ~= prevx or self.y ~= prevy then
 		self.ml -= 1		
@@ -1504,6 +1507,10 @@ function player:check_simple_collision()
 	local collided = false
 
 	if ( mget(self.x, self.y) == wallid or mget(self.x, self.y) == 50 or cat(self.x, self.y) != nil) then
+		collided = true
+	end
+
+	if self.x < 0 or self.x >= map_w or self. y < 0 or self.y >= map_h then
 		collided = true
 	end
 
@@ -1656,6 +1663,7 @@ end
 
 function player:do_attack_menu()
 	self:update_a_s()
+	self.menu_selection = 2
 
 	if (btnp(5)) then
 		self:attack_enemy()
