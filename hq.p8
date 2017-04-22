@@ -370,7 +370,8 @@ enemies =
 rocks = 
 [[16,1|
 17,1|
-22,12|]],
+22,12|
+21,13|]],
 chest_data = 
 [[16,2,2,-1|]],
 end_tile = {14,12}
@@ -441,11 +442,11 @@ enemy_type = {
 {"goblin",4,1,1,1,1,16},
 {"skeleton",6,2,2,1,0, 17},
 {"zombie",3,2,1,3,0,18},
-{"orc",8,2,3,2,2,19},
-{"fimir",6,3,3,2,3,20},
-{"mummy",4,4,2,3,0,21},
-{"chaos warrior",8,4,4,4,3,22},
-{"gargoyle",1,7,7,10,4,23},
+{"orc",8,2,4,2,2,19},
+{"fimir",6,3,3,4,3,20},
+{"mummy",4,4,4,4,0,21},
+{"chaos warrior",8,5,5,6,3,22},
+{"gargoyle",1,7,9,12,4,23},
 }
  	
 spell_list = {
@@ -714,10 +715,10 @@ function draw_active_actor_stats()
 		}
 
 		if a.protection > 0 then 
-			add(a_info, "protection level: " .. a.protection)
+			add(a_info, "protected")
 		end
 		if a.sleep > 0 then 
-			add(a_info, "asleep: " .. a.protect)
+			add(a_info, "asleep")
 		end		
 
 		if #a.items > 0 then
@@ -1034,8 +1035,8 @@ elseif actor_index < 3 then
 
 		local rect_height = #hilight_stats * 8
 
-		rectfill(en_x + 2, en_y + 2, en_x + 42, en_y + rect_height + 2, rect1colour)
-		rectfill(en_x, en_y, en_x + 40, en_y + rect_height, rect2colour)
+		rectfill(en_x + 2, en_y + 2, en_x + 50, en_y + rect_height + 2, rect1colour)
+		rectfill(en_x, en_y, en_x + 48, en_y + rect_height, rect2colour)
 
 		local y_pos = en_y + 2
 
@@ -1259,6 +1260,11 @@ function player:update()
 		gui.msg(self.name .. " woke up")
 		self.sleep -= 1
 	end
+
+	if self.protection == 1 then
+		gui.msg(self.name .. "'s protection wore off")
+		self.protection -= 1
+	end	
 
 	if (btnp(4)) then
 		self.state = "move_or_action"
@@ -1701,6 +1707,10 @@ function player:cast_spell(spell, spell_receiver)
 		if(weapon_name == "magic axe" or weapon_name == "magic staff") magic_multiplier = 2
 		if(weapon_name == "wizard weapon") magic_multiplier = 4
 
+		if spell_receiver.name == "chaos warrior" or spell_receiver.name == "gargoyle" then
+			magic_multiplier = 1
+		end
+
 		if spell[1] == "heal" then
 			local old_bp = spell_receiver.bp
 			spell_receiver.bp = min(spell_receiver.bp + 2 * magic_multiplier, spell_receiver.max_bp)
@@ -1722,7 +1732,7 @@ function player:cast_spell(spell, spell_receiver)
 			spell_receiver.sleep = magic_multiplier + 1
 			gui.msg("sleep cast on " .. spell_receiver.name)
 		elseif spell[1] == "protect" then
-			spell_receiver.protection = 2 * magic_multiplier
+			spell_receiver.protection = magic_multiplier + 1
 			gui.msg("protect cast on " .. spell_receiver.name)
 		end
 		self.state = "move_or_action"
@@ -1845,6 +1855,11 @@ end
 
 function increment_actor()
 gui.msg_p("working...")
+
+if actors[actor_index].protection > 1 then
+	actors[actor_index].protection -= 1
+end
+
 actor_index += 1
 
 if actor_index > #actors then
@@ -2054,7 +2069,9 @@ function do_actor_attack(a, d)
 	local attack_dice = a.ap
 
 	local defence_dice = d.dp
-	defence_dice += d.protection
+	if d.protection > 0 then 
+		defence_dice += 2
+	end
 
 	local attack_hits = 0
 	local defence_hits = 0
@@ -2084,7 +2101,7 @@ function do_actor_attack(a, d)
 		
 		if d.protection > 0 then
 			d.protection = 0
-			gui.msg(d.name .. "'s protect lost")
+			gui.msg(d.name .. "'s protection lost")
 		end
 		if d.bp > 0 then
 			gui.msg(d.name .. " has " .. d.bp .. " bp left")
