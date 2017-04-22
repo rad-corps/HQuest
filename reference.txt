@@ -126,3 +126,8 @@ SFX
 41 - open door
 42 - error
 43 - buy
+
+num_missions=6
+floor_colours {
+	1,13,4,2,3,0
+}
